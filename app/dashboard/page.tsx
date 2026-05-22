@@ -1,5 +1,6 @@
 // src/app/dashboard/page.tsx
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import RevenueChart from './RevenueChart';
 import RefreshButton from "./RefreshButton";
 import ThemeToggle from './ThemeToggle';
 export default async function DashboardPage() {
@@ -15,7 +16,7 @@ export default async function DashboardPage() {
   { id: "3", client: "Cyberdyne Systems", email: "john@cyberdyne.com", amount: "$2,500", status: "Meghiúsult", date: "2026-05-19" },
   ];
 
-  const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+/*   const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
   const prompt = `Légy egy profi B2B SaaS pénzügyi tanácsadó. Elemezd a következő adatokat:
   Havi bevétel: ${stats.revenue.amount} (${stats.revenue.change})
   Aktív felhasználók: ${stats.users.amount}
@@ -25,7 +26,7 @@ export default async function DashboardPage() {
 
   const model = ai.getGenerativeModel({ model: "gemini-2.5-flash" });
   const response = await model.generateContent(prompt);
-  const aiAnalysis = response.response.text();
+  const aiAnalysis = response.response.text(); */
 
 
 
@@ -72,6 +73,9 @@ export default async function DashboardPage() {
       </div>
     </div>
 
+    {/* ÚJ GRAFIKON SZEKCIÓ */}
+   <RevenueChart />
+
     {/* AI ELEMZÉS SZEKCIÓ */}
     <div className="mt-8 mb-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-900 dark:to-indigo-950/40 border border-blue-100 dark:border-indigo-900/50 p-6 rounded-2xl shadow-sm relative overflow-hidden">
       <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-blue-200/20 rounded-full blur-xl pointer-events-none" />
@@ -84,8 +88,8 @@ export default async function DashboardPage() {
             Intelligens Pénzügyi Asszisztens
           </h3>
           <p className="mt-2 text-gray-700 dark:text-gray-300 text-sm leading-relaxed font-medium">
-            {aiAnalysis}
-            {/* Ideiglenesen pihen az AI elemző, de a helye már be van melegítve! */}
+            {/* {aiAnalysis} */}
+            Ideiglenesen pihen az AI elemző, de a helye már be van melegítve!
           </p>
         </div>
       </div>
