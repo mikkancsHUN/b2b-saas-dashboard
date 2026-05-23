@@ -3,14 +3,9 @@ import RevenueChart from './RevenueChart';
 import ThemeToggle from './ThemeToggle';
 import TransactionTable from './TransactionTable';
 import { supabase } from '@/lib/supabase';
+import { title } from 'process';
 export default async function DashboardPage() {
   // Ez a mi fiktív cégünk "adatbázisa"
-  const stats = {
-    revenue: { title: "Havi Ismétlődő Bevétel (MRR)", amount: "$15,200", change: "+12%", positive: true },
-    users: { title: "Aktív Felhasználók", amount: "1,240", change: "+5%", positive: true },
-    churn: { title: "Lemorzsolódási Arány (Churn)", amount: "2.1%", change: "-0.4%", positive: true }
-  };
- 
   // 🔥 ÉLŐ ADATLEKÉRÉS A FELHŐBŐL:
   // Lekérjük az összes oszlopot (*) a 'transactions' táblából, és a legújabbakat tesszük előre
   const { data: transactions, error } = await supabase
@@ -24,6 +19,38 @@ export default async function DashboardPage() {
   }
 
   const safeTransactions = transactions || [];
+
+
+  // 🔥 ÚJ: DINAMIKUS MRR KISZÁMÍTÁSA
+  // Összeadjuk a "Sikeres" tranzakciók értékeit
+  const totalRevenue = safeTransactions
+    .filter(tx => tx.status === 'Sikeres') // Csak a sikereseket vesszük figyelembe
+    .reduce((sum, tx) => {
+      // Megtisztítjuk a szöveget: kitöröljük a '$' jelet és a vesszőket, majd számmá alakítjuk
+      // Pl: "$1,200" -> "1200" -> 1200
+      const cleanAmount = parseFloat(tx.amount.replace(/[^0-9.-]+/g, ""));
+      return sum + (isNaN(cleanAmount) ? 0 : cleanAmount);
+    }, 0);
+
+  // Formázzuk a kapott összeget, hogy újra szép dollár formátuma legyen (pl: $1,550)
+  const formattedRevenue = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    maximumFractionDigits: 0
+  }).format(totalRevenue);
+
+  // 2. A statisztikák objektum, ahol az MRR-t lecseréljük a frissen kiszámolt értékre
+  const stats = {
+    revenue: { 
+      title: "Havi Ismétlődő Bevétel (MRR)", 
+      amount: formattedRevenue, // <-- ITT A VARÁZSLAT! Élő, számolt adat
+      change: "+12%", 
+      positive: true 
+    },
+    users: { title: "Aktív Felhasználók", amount: "1,240", change: "+5%", positive: true },
+    churn: { title: "Lemorzsolódási Arány (Churn)", amount: "2.1%", change: "-0.4%", positive: true }
+  };
+
 
 /*   const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
   const prompt = `Légy egy profi B2B SaaS pénzügyi tanácsadó. Elemezd a következő adatokat:
