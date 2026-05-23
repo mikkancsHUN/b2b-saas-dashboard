@@ -1,8 +1,7 @@
-// src/app/dashboard/page.tsx
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import RevenueChart from './RevenueChart';
-import RefreshButton from "./RefreshButton";
 import ThemeToggle from './ThemeToggle';
+import TransactionTable from './TransactionTable';
 export default async function DashboardPage() {
   // Ez a mi fiktív cégünk "adatbázisa"
   const stats = {
@@ -100,39 +99,7 @@ export default async function DashboardPage() {
     </div>
 
     {/* TRANZAKCIÓK TÁBLÁZAT */}
-    <div className="mt-8 bg-white dark:bg-gray-900 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
-      <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Legutóbbi Tranzakciók</h2>
-      <div className="mb-4">
-        <RefreshButton />
-      </div>
-      <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="border-b border-gray-100 dark:border-gray-800 text-sm font-medium text-gray-500 dark:text-gray-400">
-              <th className="pb-3">Ügyfél</th>
-              <th className="pb-3">Dátum</th>
-              <th className="pb-3">Összeg</th>
-              <th className="pb-3">Státusz</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-50 dark:divide-gray-800 text-sm text-gray-700 dark:text-gray-300">
-            {transactions.map((tx) => (
-              <tr key={tx.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                <td className="py-3">
-                  <div className="font-medium text-gray-900 dark:text-gray-100">{tx.client}</div>
-                  <div className="text-xs text-gray-400 dark:text-gray-500">{tx.email}</div>
-                </td>
-                <td className="py-3 text-gray-500 dark:text-gray-400">{tx.date}</td>
-                <td className="py-3 font-medium text-gray-900 dark:text-gray-100">{tx.amount}</td>
-                <td className="py-3">
-                  <span className="text-sm">{tx.status}</span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <TransactionTable initialTransactions={transactions} />
   </div>
 );
 }

@@ -1,4 +1,3 @@
-// src/app/dashboard/RevenueChart.tsx
 'use client';
 
 import { useState } from 'react';
