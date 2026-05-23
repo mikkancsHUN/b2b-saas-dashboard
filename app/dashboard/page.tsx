@@ -2,6 +2,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import RevenueChart from './RevenueChart';
 import ThemeToggle from './ThemeToggle';
 import TransactionTable from './TransactionTable';
+import { supabase } from '@/lib/supabase';
 export default async function DashboardPage() {
   // Ez a mi fiktív cégünk "adatbázisa"
   const stats = {
@@ -9,11 +10,20 @@ export default async function DashboardPage() {
     users: { title: "Aktív Felhasználók", amount: "1,240", change: "+5%", positive: true },
     churn: { title: "Lemorzsolódási Arány (Churn)", amount: "2.1%", change: "-0.4%", positive: true }
   };
-  const transactions = [
-  { id: "1", client: "Acme Corp", email: "billing@acme.com", amount: "$1,200", status: "Sikeres", date: "2026-05-21" },
-  { id: "2", client: "Initech LLC", email: "finance@initech.com", amount: "$350", status: "Függőben", date: "2026-05-20" },
-  { id: "3", client: "Cyberdyne Systems", email: "john@cyberdyne.com", amount: "$2,500", status: "Meghiúsult", date: "2026-05-19" },
-  ];
+ 
+  // 🔥 ÉLŐ ADATLEKÉRÉS A FELHŐBŐL:
+  // Lekérjük az összes oszlopot (*) a 'transactions' táblából, és a legújabbakat tesszük előre
+  const { data: transactions, error } = await supabase
+    .from('transactions')
+    .select('*')
+    .order('date', { ascending: false });
+
+  // Ha valami hiba történne az adatbázissal, kiírjuk a konzolra, és üres tömböt adunk vissza
+  if (error) {
+    console.error("Hiba az adatok lekérése közben:", error.message);
+  }
+
+  const safeTransactions = transactions || [];
 
 /*   const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
   const prompt = `Légy egy profi B2B SaaS pénzügyi tanácsadó. Elemezd a következő adatokat:
@@ -99,7 +109,7 @@ export default async function DashboardPage() {
     </div>
 
     {/* TRANZAKCIÓK TÁBLÁZAT */}
-    <TransactionTable initialTransactions={transactions} />
+    <TransactionTable initialTransactions={safeTransactions} />
   </div>
 );
 }
