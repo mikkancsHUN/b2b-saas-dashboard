@@ -72,7 +72,7 @@ export default async function DashboardPage() {
   };
 
 
-/*   const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+  /* const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
   const prompt = `Légy egy profi B2B SaaS pénzügyi tanácsadó. Elemezd a következő adatokat:
   Havi bevétel: ${stats.revenue.amount} (${stats.revenue.change})
   Aktív felhasználók: ${stats.users.amount}
@@ -84,6 +84,37 @@ export default async function DashboardPage() {
   const response = await model.generateContent(prompt);
   const aiAnalysis = response.response.text(); */
 
+  // 🔥 AZ AI LOGIKA – GOLYÓÁLLÓ VERZIÓ RATE LIMIT KEZELÉSSEL
+  let aiAnalysis = "Az AI asszisztens épp elemzi az adatokat";
+
+  try {
+    const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+    const model = ai.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+    // Részletes tranzakciós lista összeállítása a nyers adatokból
+    const transactionSummary = safeTransactions.map(tx => `- ${tx.client}: ${tx.amount} (${tx.status}, ${tx.date})`).join('\n');
+
+    const prompt = `
+      Légy egy profi B2B SaaS pénzügyi tanácsadó. Elemezd a következő élő adatokat:
+      Havi bevétel: ${stats.revenue.amount}
+      Aktív felhasználók: ${stats.users.amount}
+      Lemorzsolódás: ${stats.churn.amount}
+
+      Részletes tranzakciók:
+      ${transactionSummary}
+
+      Írj egy rövid, maximum 2-3 mondatos, tűpontos és professzionális magyar nyelvű elemzést vagy javaslatot a cég helyzetéről! 
+      Nyers szöveget adj vissza, ne használj semmilyen markdown formázást (csillagokat, kettőskereszteket, listajeleket).
+    `;
+
+    const response = await model.generateContent(prompt);
+    aiAnalysis = response.response.text();
+
+  } catch (error) {
+    console.error("Gemini hiba:", error);
+    // Ha elértük a limitet, vagy bármi hiba van, nem omlik össze az app, ezt fogja kiírni:
+    aiAnalysis = "Az intelligens asszisztens jelenleg pihen (Rate Limit elérve). Frissítsd az oldalt egy kicsit később!"
+  }
 
 
   return (
@@ -144,8 +175,8 @@ export default async function DashboardPage() {
               Intelligens Pénzügyi Asszisztens
             </h3>
             <p className="mt-2 text-gray-700 dark:text-gray-300 text-sm leading-relaxed font-medium">
-              {/* {aiAnalysis} */}
-              Ideiglenesen pihen az AI elemző, de a helye már be van melegítve!
+              {aiAnalysis}
+              {/* Ideiglenesen pihen az AI elemző, de a helye már be van melegítve! */}
             </p>
           </div>
         </div>
