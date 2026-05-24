@@ -71,19 +71,7 @@ export default async function DashboardPage() {
     // Ha a churn 15% felett van, akkor piros jelzést kap, ha alatta, akkor zöld (jó)
   };
 
-
-  /* const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
-  const prompt = `Légy egy profi B2B SaaS pénzügyi tanácsadó. Elemezd a következő adatokat:
-  Havi bevétel: ${stats.revenue.amount} (${stats.revenue.change})
-  Aktív felhasználók: ${stats.users.amount}
-  Lemorzsolódás: ${stats.churn.amount}
-
-  Írj egy rövid, 3 mondatos, pontos és professzionális magyar nyelvű elemzést a cég helyzetéről!`;
-
-  const model = ai.getGenerativeModel({ model: "gemini-2.5-flash" });
-  const response = await model.generateContent(prompt);
-  const aiAnalysis = response.response.text(); */
-
+  
   // 🔥 AZ AI LOGIKA – GOLYÓÁLLÓ VERZIÓ RATE LIMIT KEZELÉSSEL
   let aiAnalysis = "Az AI asszisztens épp elemzi az adatokat";
 
