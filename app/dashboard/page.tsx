@@ -4,6 +4,7 @@ import ThemeToggle from './ThemeToggle';
 import TransactionTable from './TransactionTable';
 import { supabase } from '@/lib/supabase';
 import AddTransactionForm from './AddTransactionForm';
+
 export default async function DashboardPage() {
   // Ez a mi fiktív cégünk "adatbázisa"
   // 🔥 ÉLŐ ADATLEKÉRÉS A FELHŐBŐL:
@@ -21,7 +22,7 @@ export default async function DashboardPage() {
   const safeTransactions = transactions || [];
 
 
-  // 🔥 ÚJ: DINAMIKUS MRR KISZÁMÍTÁSA
+  // DINAMIKUS MRR KISZÁMÍTÁSA
   // Összeadjuk a "Sikeres" tranzakciók értékeit
   const totalRevenue = safeTransactions
     .filter(tx => tx.status === 'Sikeres') // Csak a sikereseket vesszük figyelembe
@@ -39,6 +40,24 @@ export default async function DashboardPage() {
     maximumFractionDigits: 0
   }).format(totalRevenue);
 
+
+  // 🔥 ÚJ: EGYEDI ÜGYFELEK KISZÁMÍTÁSA
+  // Kigyűjtjük az összes tranzakcióból a kliensek neveit egy egyedi halmazba (Set)
+  const uniqueClients = new Set(safeTransactions.map(tx => tx.client));
+  // Megszámoljuk, hány elem maradt a halmazban
+  const activeUsersCount = uniqueClients.size;
+
+  // 🔥 ÚJ: LEMORZSOLÓDÁSI ARÁNY (CHURN) KISZÁMÍTÁSA
+  // Megszámoljuk a meghiúsult tranzakciókat
+  const failedTransactions = safeTransactions.filter(tx => tx.status === 'Meghiúsult').length;
+  // Kiszámoljuk a százalékot az összes tranzakcióhoz képest
+  // Ha még nincs tranzakció, akkor 0%, különben (meghiúsult / összes) * 100
+  const churnRate = safeTransactions.length > 0
+    ? (failedTransactions / safeTransactions.length) * 100
+    : 0;
+  // Formázzuk szép tizedesjegyes formátumra (pl: 2.1%)
+  const formattedChurn = `${churnRate.toFixed(1)}%`;
+
   // 2. A statisztikák objektum, ahol az MRR-t lecseréljük a frissen kiszámolt értékre
   const stats = {
     revenue: { 
@@ -47,8 +66,9 @@ export default async function DashboardPage() {
       change: "+12%", 
       positive: true 
     },
-    users: { title: "Aktív Felhasználók", amount: "1,240", change: "+5%", positive: true },
-    churn: { title: "Lemorzsolódási Arány (Churn)", amount: "2.1%", change: "-0.4%", positive: true }
+    users: { title: "Aktív Ügyfelek", amount: activeUsersCount.toString(), change: `Összesen ${safeTransactions.length} tranzakció`, positive: true },
+    churn: { title: "Sikertelen Fizetések (Churn)", amount: formattedChurn, change: `${failedTransactions} meghiúsult tranzakció`, positive: churnRate < 15 }
+    // Ha a churn 15% felett van, akkor piros jelzést kap, ha alatta, akkor zöld (jó)
   };
 
 
