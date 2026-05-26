@@ -4,6 +4,7 @@ import ThemeToggle from './ThemeToggle';
 import TransactionTable from './TransactionTable';
 import { supabase } from '@/lib/supabase';
 import AddTransactionForm from './AddTransactionForm';
+import UsageChart from './UsageChart';
 
 export default async function DashboardPage() {
   // Ez a mi fiktív cégünk "adatbázisa"
@@ -148,8 +149,11 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* ÚJ GRAFIKON SZEKCIÓ */}
-      <RevenueChart />
+      {/* 2. 🔥 ÚJ, KÖZÖS DIAGRAM RÁCS: Desktopon egymás mellett, mobilon egymás alatt */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8 items-stretch">
+        <RevenueChart />
+        <UsageChart />
+      </div>
 
       {/* AI ELEMZÉS SZEKCIÓ */}
       <div className="mt-8 mb-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-900 dark:to-indigo-950/40 border border-blue-100 dark:border-indigo-900/50 p-6 rounded-2xl shadow-sm relative overflow-hidden">
