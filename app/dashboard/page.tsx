@@ -6,9 +6,73 @@ import { supabase } from '@/lib/supabase';
 import AddTransactionForm from './AddTransactionForm';
 import UsageChart from './UsageChart';
 
+// 1. 🔥 TÍPUS DEFINÍCIÓ: Ez határozza meg, pontosan milyen adatokat kaphatnak a diagramok
+export interface ChartDataPoint {
+  month: string;
+  revenue: number;
+  transactions: number;
+}
+
+// Tranzakció típus a Supabase adatokhoz
+interface TransactionData {
+  id: string; // vagy number, amilyen a Supabase-ben
+  amount: string;
+  status: string;
+  date: string | null;
+  [key: string]: unknown; // Biztonsági háló a többi mezőnek
+}
+
+
+// Segédfüggvény a tranzakciók hónapok szerinti csoportosításához
+function generateChartData(transactions: TransactionData[]): ChartDataPoint[] {
+  // Inicializáljuk a 6 hónapot alapértelmezett 0 értékekkel
+  const monthlyData: { [key: string]: { month: string; revenue: number; users: number; txCount: number } } = {
+    '01': { month: 'Jan', revenue: 0, users: 0, txCount: 0 },
+    '02': { month: 'Feb', revenue: 0, users: 0, txCount: 0 },
+    '03': { month: 'Már', revenue: 0, users: 0, txCount: 0 },
+    '04': { month: 'Ápr', revenue: 0, users: 0, txCount: 0 },
+    '05': { month: 'Máj', revenue: 0, users: 0, txCount: 0 },
+    '06': { month: 'Jún', revenue: 0, users: 0, txCount: 0 },
+  };
+
+  // Végigmegyünk az összes Supabase tranzakción
+  transactions.forEach(tx => {
+    if (!tx.date) return;
+    
+    // Kinyerjük a hónapot a dátumból (pl. "2026-05-15" -> "05")
+    const monthKey = tx.date.split('-')[1]; 
+    
+    if (monthlyData[monthKey]) {
+      // Számláljuk a tranzakciók számát (ez jó lesz a UsageChart "users" vagy használat mutatójához)
+      monthlyData[monthKey].txCount += 1;
+
+      // Ha sikeres a fizetés, hozzáadjuk a bevételhez
+      if (tx.status === 'Sikeres') {
+        const cleanAmount = parseFloat(tx.amount.replace(/[^0-9.-]+/g, ""));
+        monthlyData[monthKey].revenue += isNaN(cleanAmount) ? 0 : cleanAmount;
+      }
+    }
+  });
+
+  // Átalakítjuk az objektumot egy tiszta tömbbé, amit a diagramok imádni fognak
+  // A grafikont kerekített értékekkel etetjük (bevétel / 1000 formátumban a RevenueChart-nak, vagy simán)
+  return Object.keys(monthlyData)
+    .sort()
+    .map(key => ({
+      month: monthlyData[key].month,
+      revenue: monthlyData[key].revenue / 1000, 
+      // 🔥 A TISZTA VALÓSÁG: Csak a tranzakciók puszta darabszáma! (Pl. január = 1, május = 12)
+      transactions: monthlyData[key].txCount 
+    }));
+}
+
+
+
+
+
 export default async function DashboardPage() {
   // Ez a mi fiktív cégünk "adatbázisa"
-  // 🔥 ÉLŐ ADATLEKÉRÉS A FELHŐBŐL:
+  // ÉLŐ ADATLEKÉRÉS A FELHŐBŐL:
   // Lekérjük az összes oszlopot (*) a 'transactions' táblából, és a legújabbakat tesszük előre
   const { data: transactions, error } = await supabase
     .from('transactions')
@@ -21,6 +85,8 @@ export default async function DashboardPage() {
   }
 
   const safeTransactions = transactions || [];
+
+  const liveChartData = generateChartData(safeTransactions);
 
 
   // DINAMIKUS MRR KISZÁMÍTÁSA
@@ -42,13 +108,13 @@ export default async function DashboardPage() {
   }).format(totalRevenue);
 
 
-  // 🔥 ÚJ: EGYEDI ÜGYFELEK KISZÁMÍTÁSA
+  // EGYEDI ÜGYFELEK KISZÁMÍTÁSA
   // Kigyűjtjük az összes tranzakcióból a kliensek neveit egy egyedi halmazba (Set)
   const uniqueClients = new Set(safeTransactions.map(tx => tx.client));
   // Megszámoljuk, hány elem maradt a halmazban
   const activeUsersCount = uniqueClients.size;
 
-  // 🔥 ÚJ: LEMORZSOLÓDÁSI ARÁNY (CHURN) KISZÁMÍTÁSA
+  // LEMORZSOLÓDÁSI ARÁNY (CHURN) KISZÁMÍTÁSA
   // Megszámoljuk a meghiúsult tranzakciókat
   const failedTransactions = safeTransactions.filter(tx => tx.status === 'Meghiúsult').length;
   // Kiszámoljuk a százalékot az összes tranzakcióhoz képest
@@ -73,7 +139,7 @@ export default async function DashboardPage() {
   };
 
   
-  // 🔥 AZ AI LOGIKA – GOLYÓÁLLÓ VERZIÓ RATE LIMIT KEZELÉSSEL
+  // AZ AI LOGIKA – GOLYÓÁLLÓ VERZIÓ RATE LIMIT KEZELÉSSEL
   let aiAnalysis = "Az AI asszisztens épp elemzi az adatokat";
 
   try {
@@ -149,10 +215,10 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* 2. 🔥 ÚJ, KÖZÖS DIAGRAM RÁCS: Desktopon egymás mellett, mobilon egymás alatt */}
+      {/* KÖZÖS DIAGRAM RÁCS: Desktopon egymás mellett, mobilon egymás alatt */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8 items-stretch">
-        <RevenueChart />
-        <UsageChart />
+        <RevenueChart chartData={liveChartData} />
+        <UsageChart chartData={liveChartData} />
       </div>
 
       {/* AI ELEMZÉS SZEKCIÓ */}

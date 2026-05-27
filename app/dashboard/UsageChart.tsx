@@ -2,26 +2,28 @@
 
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 
+// 🔥 Típus meghatározása itt is
+interface ChartDataPoint {
+  month: string;
+  revenue: number;
+  transactions: number;
+}
 
-// Kamat adatok a SaaS dashboardhoz (később a Supabase-ből jön majd!)
-const data = [
-  { month: 'Jan', revenue: 1200, users: 400 },
-  { month: 'Feb', revenue: 2100, users: 700 },
-  { month: 'Már', revenue: 1800, users: 600 },
-  { month: 'Ápr', revenue: 3400, users: 1200 },
-  { month: 'Máj', revenue: 4100, users: 1500 },
-  { month: 'Jún', revenue: 5600, users: 1800 },
-];
+interface UsageChartProps {
+  chartData: ChartDataPoint[];
+}
 
-export default function UsageChart() {
+export default function UsageChart({ chartData = [] }: UsageChartProps) {
+  const data = chartData;
+
   return (
     // 1. A KÜLSŐ DOBOZ: Teljesen normális p-6 padding, mint a többi kártyánál! A cím így tökéletesen szimmetrikus.
     <div className="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 transition-colors h-full flex flex-col justify-between">
       
       {/* 2. CÍM SZEKCIÓ: Semmi extra osztály nem kell rá, a szülő p-6 miatt tökéletesen áll */}
       <div className="mb-4">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Rendszerhasználat és Bevétel</h3>
-        <p className="text-sm text-gray-500 dark:text-gray-400">Havi bontású B2B SaaS növekedési mutatók</p>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Tranzakciók Mennyisége</h3>
+<p className="text-sm text-gray-500 dark:text-gray-400">Havi bontásban feldolgozott műveletek száma</p>
       </div>
 
       {/* 3. DIAGRAM SZEKCIÓ: Mobilon a -mx-6 kihúzza a széléig, px-2 hogy a számok ne lógjanak le. Laptopon (lg:) visszaáll normálra (mx-0) */}
@@ -39,7 +41,12 @@ export default function UsageChart() {
             <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
             
             <XAxis dataKey="month" className="text-xs fill-gray-500 dark:fill-gray-400" />
-            <YAxis className="text-xs fill-gray-500 dark:fill-gray-400" />
+            <YAxis 
+              className="text-xs fill-gray-500 dark:fill-gray-400" 
+              domain={[0, 'dataMax + 2']} // A nulláról indul, és a legnagyobb darabszám felett hagy 2 egység helyet
+              hide={false} // 💡 Kapcsoljuk vissza, hogy látszódjon: 2, 4, 6, 8, 10, 12 db!
+              tickFormatter={(value) => `${value} db`} // "db" felirat a számok mögé
+            />
             
             <Tooltip 
               contentStyle={{ 
@@ -50,10 +57,10 @@ export default function UsageChart() {
             />
             
             <Area 
-              type="monotone" 
-              dataKey="revenue" 
+              type="monotone" // Szép, lágy, lekerekített hullámvonal
+              dataKey="transactions" 
               stroke="#3B82F6" 
-              strokeWidth={2}
+              strokeWidth={3} // 🔥 Vastagabb, karakteresebb vonal
               fillOpacity={1} 
               fill="url(#colorRevenue)" 
             />

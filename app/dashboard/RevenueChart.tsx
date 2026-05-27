@@ -2,18 +2,28 @@
 
 import { useState } from 'react';
 
-export default function RevenueChart() {
-  const data = [
-    { month: 'Jan', revenue: 8 },
-    { month: 'Feb', revenue: 9.5 },
-    { month: 'Már', revenue: 11 },
-    { month: 'Ápr', revenue: 10.2 },
-    { month: 'Máj', revenue: 13 },
-    { month: 'Jún', revenue: 15.2 },
-  ];
+// 🔥 Típus meghatározása a beérkező adathoz
+interface ChartDataPoint {
+  month: string;
+  revenue: number;
+  transactions: number;
+}
 
+interface RevenueChartProps {
+  chartData: ChartDataPoint[];
+}
+
+// 🔥 MÓDOSÍTVA: A függvény most már megkapja a page.tsx-ből a friss adatokat!
+export default function RevenueChart({ chartData = [] }: RevenueChartProps) {
+  // A belső logikában a régi 'data' változó helyett használjuk a 'chartData'-t
+  const data = chartData;
+  
+  // A hoveredIndex state-ed és a többi kód változatlanul maradhat!
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
+  // 1. 🔥 Megkeressük a legnagyobb havi bevételt a tömbben (hogy ez legyen a 100% magasság)
+  const maxRevenue = Math.max(...data.map(item => item.revenue), 1);
+  
   return (
     <div className="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 h-full flex flex-col">
       <div className="flex justify-between items-center mb-6">
@@ -48,7 +58,9 @@ export default function RevenueChart() {
         {/* 2. AZ OSZLOPOK: Az items-end garantálja, hogy fixen az aljára üljenek le az oszlopok, bármekkora is a doboz */}
       <div className="absolute inset-0 flex justify-between items-end pt-4 px-2 gap-3">
         {data.map((item, index) => {
-          const heightPercent = (item.revenue / 16) * 100;
+          // 2. 🔥 Dinamikus százalék a maximumhoz képest + minimum 4% magasság, hogy a kis összegek is látszódjanak!
+          const calculatedPercent = (item.revenue / maxRevenue) * 100;
+          const heightPercent = item.revenue > 0 ? Math.max(calculatedPercent, 4) : 0;
 
           return (
             <div 
