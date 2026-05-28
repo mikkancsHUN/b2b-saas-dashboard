@@ -9,8 +9,13 @@ import UsageChart from './UsageChart';
 // 1. 🔥 TÍPUS DEFINÍCIÓ: Ez határozza meg, pontosan milyen adatokat kaphatnak a diagramok
 export interface ChartDataPoint {
   month: string;
-  revenue: number;
+  successful: number;
+  pending: number;
+  failed: number;
   transactions: number;
+  successfulCount: number; // 💡 Győződj meg róla, hogy ezek itt vannak!
+  pendingCount: number;
+  failedCount: number;
 }
 
 // Tranzakció típus a Supabase adatokhoz
@@ -25,45 +30,59 @@ interface TransactionData {
 
 
 // Segédfüggvény a tranzakciók hónapok szerinti csoportosításához
+// Segédfüggvény a tranzakciók hónapok szerinti csoportosításához
 function generateChartData(transactions: TransactionData[]): ChartDataPoint[] {
-  // Inicializáljuk a 6 hónapot alapértelmezett 0 értékekkel
-  const monthlyData: { [key: string]: { month: string; revenue: number; users: number; txCount: number } } = {
-    '01': { month: 'Jan', revenue: 0, users: 0, txCount: 0 },
-    '02': { month: 'Feb', revenue: 0, users: 0, txCount: 0 },
-    '03': { month: 'Már', revenue: 0, users: 0, txCount: 0 },
-    '04': { month: 'Ápr', revenue: 0, users: 0, txCount: 0 },
-    '05': { month: 'Máj', revenue: 0, users: 0, txCount: 0 },
-    '06': { month: 'Jún', revenue: 0, users: 0, txCount: 0 },
+  const monthlyData: { 
+    [key: string]: { 
+      month: string; 
+      successful: number; pending: number; failed: number; txCount: number; 
+      successCount: number; pendingCount: number; failedCount: number; // 💡 Új számlálók
+    } 
+  } = {
+    '01': { month: 'Jan', successful: 0, pending: 0, failed: 0, txCount: 0, successCount: 0, pendingCount: 0, failedCount: 0 },
+    '02': { month: 'Feb', successful: 0, pending: 0, failed: 0, txCount: 0, successCount: 0, pendingCount: 0, failedCount: 0 },
+    '03': { month: 'Már', successful: 0, pending: 0, failed: 0, txCount: 0, successCount: 0, pendingCount: 0, failedCount: 0 },
+    '04': { month: 'Ápr', successful: 0, pending: 0, failed: 0, txCount: 0, successCount: 0, pendingCount: 0, failedCount: 0 },
+    '05': { month: 'Máj', successful: 0, pending: 0, failed: 0, txCount: 0, successCount: 0, pendingCount: 0, failedCount: 0 },
+    '06': { month: 'Jún', successful: 0, pending: 0, failed: 0, txCount: 0, successCount: 0, pendingCount: 0, failedCount: 0 },
   };
 
-  // Végigmegyünk az összes Supabase tranzakción
   transactions.forEach(tx => {
     if (!tx.date) return;
-    
-    // Kinyerjük a hónapot a dátumból (pl. "2026-05-15" -> "05")
     const monthKey = tx.date.split('-')[1]; 
     
     if (monthlyData[monthKey]) {
-      // Számláljuk a tranzakciók számát (ez jó lesz a UsageChart "users" vagy használat mutatójához)
       monthlyData[monthKey].txCount += 1;
 
-      // Ha sikeres a fizetés, hozzáadjuk a bevételhez
+      const cleanAmount = parseFloat(tx.amount.replace(/[^0-9.-]+/g, ""));
+      const amount = isNaN(cleanAmount) ? 0 : cleanAmount;
+
+      // 🔥 Itt gyűjtjük az összeget ÉS a darabszámot is egyszerre!
       if (tx.status === 'Sikeres') {
-        const cleanAmount = parseFloat(tx.amount.replace(/[^0-9.-]+/g, ""));
-        monthlyData[monthKey].revenue += isNaN(cleanAmount) ? 0 : cleanAmount;
+        monthlyData[monthKey].successful += amount;
+        monthlyData[monthKey].successCount += 1;
+      } else if (tx.status === 'Függőben') {
+        monthlyData[monthKey].pending += amount;
+        monthlyData[monthKey].pendingCount += 1;
+      } else if (tx.status === 'Meghiúsult') {
+        monthlyData[monthKey].failed += amount;
+        monthlyData[monthKey].failedCount += 1;
       }
     }
   });
 
-  // Átalakítjuk az objektumot egy tiszta tömbbé, amit a diagramok imádni fognak
-  // A grafikont kerekített értékekkel etetjük (bevétel / 1000 formátumban a RevenueChart-nak, vagy simán)
   return Object.keys(monthlyData)
     .sort()
     .map(key => ({
       month: monthlyData[key].month,
-      revenue: monthlyData[key].revenue / 1000, 
-      // 🔥 A TISZTA VALÓSÁG: Csak a tranzakciók puszta darabszáma! (Pl. január = 1, május = 12)
-      transactions: monthlyData[key].txCount 
+      successful: monthlyData[key].successful,
+      pending: monthlyData[key].pending,
+      failed: monthlyData[key].failed,
+      transactions: monthlyData[key].txCount,
+      // 🔥 Átadjuk a darabszámokat a UsageChart-nak
+      successfulCount: monthlyData[key].successCount,
+      pendingCount: monthlyData[key].pendingCount,
+      failedCount: monthlyData[key].failedCount,
     }));
 }
 
