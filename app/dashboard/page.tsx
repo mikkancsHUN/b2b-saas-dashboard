@@ -5,6 +5,8 @@ import TransactionTable from './TransactionTable';
 import { supabase } from '@/lib/supabase';
 import AddTransactionForm from './AddTransactionForm';
 import UsageChart from './UsageChart';
+import UserMenu from './UserMenu';
+import { getSupabaseServer } from '@/lib/supabaseServer';
 
 // 1. 🔥 TÍPUS DEFINÍCIÓ: Ez határozza meg, pontosan milyen adatokat kaphatnak a diagramok
 export interface ChartDataPoint {
@@ -29,7 +31,9 @@ interface TransactionData {
 }
 
 
-// Segédfüggvény a tranzakciók hónapok szerinti csoportosításához
+// 🔥 Ez a sor kikapcsolja a cache-elést ezen az oldalon, így mindig a legfrissebb adatot kapod a Supabase-ből:
+export const dynamic = 'force-dynamic';
+
 // Segédfüggvény a tranzakciók hónapok szerinti csoportosításához
 function generateChartData(transactions: TransactionData[]): ChartDataPoint[] {
   const monthlyData: { 
@@ -255,6 +259,16 @@ function calculateMRRMetrics(transactions: TransactionData[]) {
 export default async function DashboardPage() {
   // Ez a mi fiktív cégünk "adatbázisa"
   // ÉLŐ ADATLEKÉRÉS A FELHŐBŐL:
+  // 🔥 Meghívjuk a szerver klienst
+  const supabaseServer = await getSupabaseServer();
+  // Lekérjük az aktuális bejelentkezett felhasználót a Supabase-ből
+  const { data: { user } } = await supabaseServer.auth.getUser();
+  console.log('ÚJ SZERVER USER DATA:', user?.user_metadata);
+  // Ha van felhasználó, kiszedjük a regisztrációnál megadott felhasználónevet, különben 'Vendég'
+  const username = 
+  user?.user_metadata?.display_name || 
+  user?.email?.split('@')[0] || 
+  'Vendég';
   // Lekérjük az összes oszlopot (*) a 'transactions' táblából, és a legújabbakat tesszük előre
   const { data: transactions, error } = await supabase
     .from('transactions')
@@ -362,9 +376,20 @@ export default async function DashboardPage() {
     <div className="p-8 bg-gray-50 dark:bg-gray-950 min-h-screen transition-colors duration-200">
       {/* Címsor */}
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Pénzügyi Irányítópult</h1>
-        <ThemeToggle />
-      </div>
+  <div>
+    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Pénzügyi Irányítópult</h1>
+    {/* Ha gondolod, ide is mehet egy kis alcím, mint a grafikonoknál */}
+    <p className="text-xs text-gray-500 dark:text-gray-400">Üdvözlünk újra a rendszerben!</p>
+  </div>
+  
+  {/* 🔥 Itt van a jobb oldali gombcsoport, szépen egymás mellé rendezve a flex és gap segítségével */}
+  <div className="flex items-center gap-2">
+    <ThemeToggle />
+    
+    {/* Behelyettesítjük a sima szöveges nevet a vadiúj, interaktív menünkre */}
+    <UserMenu username={username} />
+  </div>
+</div>
 
       {/* A RÁCS (GRID) */}
       {/* 🚀 SZIMMETRIKUS TŐZSDEI RÁCS (GRID) - 4 OSZLOPOS ELRENDEZÉS */}
