@@ -1,12 +1,12 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
-import RevenueChart from './RevenueChart';
-import ThemeToggle from './ThemeToggle';
-import TransactionTable from './TransactionTable';
-import { supabase } from '@/lib/supabase';
-import AddTransactionForm from './AddTransactionForm';
-import UsageChart from './UsageChart';
-import UserMenu from './UserMenu';
-import { getSupabaseServer } from '@/lib/supabaseServer';
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import RevenueChart from "./RevenueChart";
+import ThemeToggle from "./ThemeToggle";
+import TransactionTable from "./TransactionTable";
+import { supabase } from "@/lib/supabase";
+import AddTransactionForm from "./AddTransactionForm";
+import UsageChart from "./UsageChart";
+import UserMenu from "./UserMenu";
+import { getSupabaseServer } from "@/lib/supabaseServer";
 
 // 1. 🔥 TÍPUS DEFINÍCIÓ: Ez határozza meg, pontosan milyen adatokat kaphatnak a diagramok
 export interface ChartDataPoint {
@@ -30,31 +30,89 @@ interface TransactionData {
   email: string;
 }
 
-
 // 🔥 Ez a sor kikapcsolja a cache-elést ezen az oldalon, így mindig a legfrissebb adatot kapod a Supabase-ből:
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 // Segédfüggvény a tranzakciók hónapok szerinti csoportosításához
 function generateChartData(transactions: TransactionData[]): ChartDataPoint[] {
-  const monthlyData: { 
-    [key: string]: { 
-      month: string; 
-      successful: number; pending: number; failed: number; txCount: number; 
-      successCount: number; pendingCount: number; failedCount: number; // 💡 Új számlálók
-    } 
+  const monthlyData: {
+    [key: string]: {
+      month: string;
+      successful: number;
+      pending: number;
+      failed: number;
+      txCount: number;
+      successCount: number;
+      pendingCount: number;
+      failedCount: number; // 💡 Új számlálók
+    };
   } = {
-    '01': { month: 'Jan', successful: 0, pending: 0, failed: 0, txCount: 0, successCount: 0, pendingCount: 0, failedCount: 0 },
-    '02': { month: 'Feb', successful: 0, pending: 0, failed: 0, txCount: 0, successCount: 0, pendingCount: 0, failedCount: 0 },
-    '03': { month: 'Már', successful: 0, pending: 0, failed: 0, txCount: 0, successCount: 0, pendingCount: 0, failedCount: 0 },
-    '04': { month: 'Ápr', successful: 0, pending: 0, failed: 0, txCount: 0, successCount: 0, pendingCount: 0, failedCount: 0 },
-    '05': { month: 'Máj', successful: 0, pending: 0, failed: 0, txCount: 0, successCount: 0, pendingCount: 0, failedCount: 0 },
-    '06': { month: 'Jún', successful: 0, pending: 0, failed: 0, txCount: 0, successCount: 0, pendingCount: 0, failedCount: 0 },
+    "01": {
+      month: "Jan",
+      successful: 0,
+      pending: 0,
+      failed: 0,
+      txCount: 0,
+      successCount: 0,
+      pendingCount: 0,
+      failedCount: 0,
+    },
+    "02": {
+      month: "Feb",
+      successful: 0,
+      pending: 0,
+      failed: 0,
+      txCount: 0,
+      successCount: 0,
+      pendingCount: 0,
+      failedCount: 0,
+    },
+    "03": {
+      month: "Már",
+      successful: 0,
+      pending: 0,
+      failed: 0,
+      txCount: 0,
+      successCount: 0,
+      pendingCount: 0,
+      failedCount: 0,
+    },
+    "04": {
+      month: "Ápr",
+      successful: 0,
+      pending: 0,
+      failed: 0,
+      txCount: 0,
+      successCount: 0,
+      pendingCount: 0,
+      failedCount: 0,
+    },
+    "05": {
+      month: "Máj",
+      successful: 0,
+      pending: 0,
+      failed: 0,
+      txCount: 0,
+      successCount: 0,
+      pendingCount: 0,
+      failedCount: 0,
+    },
+    "06": {
+      month: "Jún",
+      successful: 0,
+      pending: 0,
+      failed: 0,
+      txCount: 0,
+      successCount: 0,
+      pendingCount: 0,
+      failedCount: 0,
+    },
   };
 
-  transactions.forEach(tx => {
+  transactions.forEach((tx) => {
     if (!tx.date) return;
-    const monthKey = tx.date.split('-')[1]; 
-    
+    const monthKey = tx.date.split("-")[1];
+
     if (monthlyData[monthKey]) {
       monthlyData[monthKey].txCount += 1;
 
@@ -62,13 +120,13 @@ function generateChartData(transactions: TransactionData[]): ChartDataPoint[] {
       const amount = isNaN(cleanAmount) ? 0 : cleanAmount;
 
       // 🔥 Itt gyűjtjük az összeget ÉS a darabszámot is egyszerre!
-      if (tx.status === 'Sikeres') {
+      if (tx.status === "Sikeres") {
         monthlyData[monthKey].successful += amount;
         monthlyData[monthKey].successCount += 1;
-      } else if (tx.status === 'Függőben') {
+      } else if (tx.status === "Függőben") {
         monthlyData[monthKey].pending += amount;
         monthlyData[monthKey].pendingCount += 1;
-      } else if (tx.status === 'Meghiúsult') {
+      } else if (tx.status === "Meghiúsult") {
         monthlyData[monthKey].failed += amount;
         monthlyData[monthKey].failedCount += 1;
       }
@@ -77,7 +135,7 @@ function generateChartData(transactions: TransactionData[]): ChartDataPoint[] {
 
   return Object.keys(monthlyData)
     .sort()
-    .map(key => ({
+    .map((key) => ({
       month: monthlyData[key].month,
       successful: monthlyData[key].successful,
       pending: monthlyData[key].pending,
@@ -90,12 +148,12 @@ function generateChartData(transactions: TransactionData[]): ChartDataPoint[] {
     }));
 }
 
-
-
 // 2. 🔥 EZ AZ ÚJ FÜGGVÉNY A KÉT KÁRTYÁHOZ (MRR + ÖSSZES BEVÉTEL)
 function calculateMRRMetrics(transactions: TransactionData[]) {
-  const successfulTx = transactions.filter(tx => tx.status === 'Sikeres' && tx.date);
-  
+  const successfulTx = transactions.filter(
+    (tx) => tx.status === "Sikeres" && tx.date,
+  );
+
   // Összes sikeres bevétel
   const totalRevenue = successfulTx.reduce((sum, tx) => {
     const cleanAmount = parseFloat(tx.amount.replace(/[^0-9.-]+/g, ""));
@@ -103,33 +161,50 @@ function calculateMRRMetrics(transactions: TransactionData[]) {
   }, 0);
 
   const totalSuccessCount = successfulTx.length;
-  const totalFailedCount = transactions.filter(tx => tx.status === 'Meghiúsult').length;
-  const totalPendingCount = transactions.filter(tx => tx.status === 'Függőben').length;
+  const totalFailedCount = transactions.filter(
+    (tx) => tx.status === "Meghiúsult",
+  ).length;
+  const totalPendingCount = transactions.filter(
+    (tx) => tx.status === "Függőben",
+  ).length;
 
-  // 🔥 LÁTVÁNYOS BLIZZARD-BIZTOS JAVÍTÁS: 
+  // 🔥 LÁTVÁNYOS BLIZZARD-BIZTOS JAVÍTÁS:
   // Mindenkori összes egyedi cég kigyűjtése a valós 'client' mező alapján, dátumtól függetlenül!
   const globalUniqueCustomers = new Set<string>();
-  transactions.forEach(tx => {
-    if (tx.client && tx.client.trim() !== '') {
+  transactions.forEach((tx) => {
+    if (tx.client && tx.client.trim() !== "") {
       globalUniqueCustomers.add(tx.client.trim());
     }
   });
 
   if (transactions.length === 0) {
-    return { 
-      currentMRR: 0, percentageChange: 0, isPositive: true, totalRevenue: 0,
+    return {
+      currentMRR: 0,
+      percentageChange: 0,
+      isPositive: true,
+      totalRevenue: 0,
       successTx: { current: 0, total: 0, change: 0, isPositive: true },
       flowTx: { current: 0, total: 0, change: 0, isPositive: true },
       pending: { current: 0, total: 0, change: 0, isPositive: true },
       failed: { current: 0, total: 0, change: 0, isPositive: true },
-      uniqueCustomers: { currentMonthCount: 0, totalAllTimeCount: 0, changeText: '0% változás', isPositive: true }
+      uniqueCustomers: {
+        currentMonthCount: 0,
+        totalAllTimeCount: 0,
+        changeText: "0% változás",
+        isPositive: true,
+      },
     };
   }
 
   // Dátumkezelés
-  const dates = transactions.filter(tx => tx.date).map(tx => new Date(tx.date || ""));
-  const latestDate = dates.length > 0 ? new Date(Math.max(...dates.map(d => d.getTime()))) : new Date();
-  
+  const dates = transactions
+    .filter((tx) => tx.date)
+    .map((tx) => new Date(tx.date || ""));
+  const latestDate =
+    dates.length > 0
+      ? new Date(Math.max(...dates.map((d) => d.getTime())))
+      : new Date();
+
   const currentYear = latestDate.getFullYear();
   const currentMonth = latestDate.getMonth();
   const prevMonth = currentMonth === 0 ? 11 : currentMonth - 1;
@@ -150,14 +225,14 @@ function calculateMRRMetrics(transactions: TransactionData[]) {
   const currentMonthCustomersSet = new Set<string>();
   const prevMonthCustomersSet = new Set<string>();
 
-  transactions.forEach(tx => {
+  transactions.forEach((tx) => {
     if (!tx.date) return;
     const txDate = new Date(tx.date);
     if (isNaN(txDate.getTime())) return;
 
     const txYear = txDate.getFullYear();
     const txMonth = txDate.getMonth();
-    
+
     // Havi tranzakció folyamat számlálása
     if (txYear === currentYear && txMonth === currentMonth) {
       currentMonthFlowCount++;
@@ -166,7 +241,7 @@ function calculateMRRMetrics(transactions: TransactionData[]) {
     }
 
     // 👥 HAVI BLIZZARD SZŰRŐ: Havi egyedi ügyfelek gyűjtése a valós 'client' mezővel
-    if (tx.client && tx.client.trim() !== '') {
+    if (tx.client && tx.client.trim() !== "") {
       const cleanClient = tx.client.trim();
       if (txYear === currentYear && txMonth === currentMonth) {
         currentMonthCustomersSet.add(cleanClient);
@@ -176,7 +251,7 @@ function calculateMRRMetrics(transactions: TransactionData[]) {
     }
 
     // Sikeresek és MRR
-    if (tx.status === 'Sikeres') {
+    if (tx.status === "Sikeres") {
       const cleanAmount = parseFloat(tx.amount.replace(/[^0-9.-]+/g, ""));
       const amount = isNaN(cleanAmount) ? 0 : cleanAmount;
 
@@ -188,16 +263,18 @@ function calculateMRRMetrics(transactions: TransactionData[]) {
         prevMonthSuccess++;
       }
     }
-    
+
     // Függőben lévők
-    if (tx.status === 'Függőben') {
-      if (txYear === currentYear && txMonth === currentMonth) currentMonthPending++;
+    if (tx.status === "Függőben") {
+      if (txYear === currentYear && txMonth === currentMonth)
+        currentMonthPending++;
       else if (txYear === prevYear && txMonth === prevMonth) prevMonthPending++;
     }
-    
+
     // Meghiúsultak
-    if (tx.status === 'Meghiúsult') {
-      if (txYear === currentYear && txMonth === currentMonth) currentMonthFailed++;
+    if (tx.status === "Meghiúsult") {
+      if (txYear === currentYear && txMonth === currentMonth)
+        currentMonthFailed++;
       else if (txYear === prevYear && txMonth === prevMonth) prevMonthFailed++;
     }
   });
@@ -215,7 +292,10 @@ function calculateMRRMetrics(transactions: TransactionData[]) {
   const flowChange = getChange(currentMonthFlowCount, prevMonthFlowCount);
   const pendingChange = getChange(currentMonthPending, prevMonthPending);
   const failedChange = getChange(currentMonthFailed, prevMonthFailed);
-  const customerChange = getChange(currentMonthCustomersSet.size, prevMonthCustomersSet.size);
+  const customerChange = getChange(
+    currentMonthCustomersSet.size,
+    prevMonthCustomersSet.size,
+  );
 
   return {
     currentMRR: currentMonthTotal,
@@ -226,35 +306,34 @@ function calculateMRRMetrics(transactions: TransactionData[]) {
       current: currentMonthSuccess,
       total: totalSuccessCount,
       change: successChange.change,
-      isPositive: successChange.isPositive
+      isPositive: successChange.isPositive,
     },
     flowTx: {
       current: currentMonthFlowCount,
       total: transactions.length,
       change: flowChange.change,
-      isPositive: flowChange.isPositive
+      isPositive: flowChange.isPositive,
     },
     pending: {
       current: currentMonthPending,
       total: totalPendingCount,
       change: pendingChange.change,
-      isPositive: pendingChange.isPositive
+      isPositive: pendingChange.isPositive,
     },
     failed: {
       current: currentMonthFailed,
       total: totalFailedCount,
       change: failedChange.change,
-      isPositive: failedChange.isPositive
+      isPositive: failedChange.isPositive,
     },
     uniqueCustomers: {
       currentMonthCount: currentMonthCustomersSet.size,
       totalAllTimeCount: globalUniqueCustomers.size, // 💡 Ez most már kőkeményen 10 lesz!
-      changeText: `${customerChange.isPositive ? '+' : '-'}${customerChange.change}%`,
-      isPositive: customerChange.isPositive
-    }
+      changeText: `${customerChange.isPositive ? "+" : "-"}${customerChange.change}%`,
+      isPositive: customerChange.isPositive,
+    },
   };
 }
-
 
 export default async function DashboardPage() {
   // Ez a mi fiktív cégünk "adatbázisa"
@@ -262,18 +341,18 @@ export default async function DashboardPage() {
   // 🔥 Meghívjuk a szerver klienst
   const supabaseServer = await getSupabaseServer();
   // Lekérjük az aktuális bejelentkezett felhasználót a Supabase-ből
-  const { data: { user } } = await supabaseServer.auth.getUser();
-  console.log('ÚJ SZERVER USER DATA:', user?.user_metadata);
+  const {
+    data: { user },
+  } = await supabaseServer.auth.getUser();
+  console.log("ÚJ SZERVER USER DATA:", user?.user_metadata);
   // Ha van felhasználó, kiszedjük a regisztrációnál megadott felhasználónevet, különben 'Vendég'
-  const username = 
-  user?.user_metadata?.display_name || 
-  user?.email?.split('@')[0] || 
-  'Vendég';
+  const username =
+    user?.user_metadata?.display_name || user?.email?.split("@")[0] || "Vendég";
   // Lekérjük az összes oszlopot (*) a 'transactions' táblából, és a legújabbakat tesszük előre
   const { data: transactions, error } = await supabase
-    .from('transactions')
-    .select('*')
-    .order('date', { ascending: false });
+    .from("transactions")
+    .select("*")
+    .order("date", { ascending: false });
 
   // Ha valami hiba történne az adatbázissal, kiírjuk a konzolra, és üres tömböt adunk vissza
   if (error) {
@@ -284,15 +363,14 @@ export default async function DashboardPage() {
 
   // A diagramok adatai
   const liveChartData = generateChartData(safeTransactions);
-  
+
   // 🔥 ITT AZ ÚJ SOR: A kártyák adatai az új közös függvényből!
   const mrrMetrics = calculateMRRMetrics(safeTransactions);
-
 
   // DINAMIKUS MRR KISZÁMÍTÁSA
   // Összeadjuk a "Sikeres" tranzakciók értékeit
   const totalRevenue = safeTransactions
-    .filter(tx => tx.status === 'Sikeres') // Csak a sikereseket vesszük figyelembe
+    .filter((tx) => tx.status === "Sikeres") // Csak a sikereseket vesszük figyelembe
     .reduce((sum, tx) => {
       // Megtisztítjuk a szöveget: kitöröljük a '$' jelet és a vesszőket, majd számmá alakítjuk
       // Pl: "$1,200" -> "1200" -> 1200
@@ -301,44 +379,55 @@ export default async function DashboardPage() {
     }, 0);
 
   // Formázzuk a kapott összeget, hogy újra szép dollár formátuma legyen (pl: $1,550)
-  const formattedRevenue = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    maximumFractionDigits: 0
+  const formattedRevenue = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
   }).format(totalRevenue);
-
 
   // EGYEDI ÜGYFELEK KISZÁMÍTÁSA
   // Kigyűjtjük az összes tranzakcióból a kliensek neveit egy egyedi halmazba (Set)
-  const uniqueClients = new Set(safeTransactions.map(tx => tx.client));
+  const uniqueClients = new Set(safeTransactions.map((tx) => tx.client));
   // Megszámoljuk, hány elem maradt a halmazban
   const activeUsersCount = uniqueClients.size;
 
   // LEMORZSOLÓDÁSI ARÁNY (CHURN) KISZÁMÍTÁSA
   // Megszámoljuk a meghiúsult tranzakciókat
-  const failedTransactions = safeTransactions.filter(tx => tx.status === 'Meghiúsult').length;
+  const failedTransactions = safeTransactions.filter(
+    (tx) => tx.status === "Meghiúsult",
+  ).length;
   // Kiszámoljuk a százalékot az összes tranzakcióhoz képest
   // Ha még nincs tranzakció, akkor 0%, különben (meghiúsult / összes) * 100
-  const churnRate = safeTransactions.length > 0
-    ? (failedTransactions / safeTransactions.length) * 100
-    : 0;
+  const churnRate =
+    safeTransactions.length > 0
+      ? (failedTransactions / safeTransactions.length) * 100
+      : 0;
   // Formázzuk szép tizedesjegyes formátumra (pl: 2.1%)
   const formattedChurn = `${churnRate.toFixed(1)}%`;
 
   // 2. A statisztikák objektum, ahol az MRR-t lecseréljük a frissen kiszámolt értékre
   const stats = {
-    revenue: { 
-      title: "Havi Ismétlődő Bevétel (MRR)", 
+    revenue: {
+      title: "Havi Ismétlődő Bevétel (MRR)",
       amount: formattedRevenue, // <-- ITT A VARÁZSLAT! Élő, számolt adat
-      change: "+12%", 
-      positive: true 
+      change: "+12%",
+      positive: true,
     },
-    users: { title: "Aktív Ügyfelek", amount: activeUsersCount.toString(), change: `Összesen ${safeTransactions.length} tranzakció`, positive: true },
-    churn: { title: "Sikertelen Fizetések (Churn)", amount: formattedChurn, change: `${failedTransactions} meghiúsult tranzakció`, positive: churnRate < 15 }
+    users: {
+      title: "Aktív Ügyfelek",
+      amount: activeUsersCount.toString(),
+      change: `Összesen ${safeTransactions.length} tranzakció`,
+      positive: true,
+    },
+    churn: {
+      title: "Sikertelen Fizetések (Churn)",
+      amount: formattedChurn,
+      change: `${failedTransactions} meghiúsult tranzakció`,
+      positive: churnRate < 15,
+    },
     // Ha a churn 15% felett van, akkor piros jelzést kap, ha alatta, akkor zöld (jó)
   };
 
-  
   // AZ AI LOGIKA – GOLYÓÁLLÓ VERZIÓ RATE LIMIT KEZELÉSSEL
   let aiAnalysis = "Az AI asszisztens épp elemzi az adatokat";
 
@@ -347,7 +436,9 @@ export default async function DashboardPage() {
     const model = ai.getGenerativeModel({ model: "gemini-2.5-flash" });
 
     // Részletes tranzakciós lista összeállítása a nyers adatokból
-    const transactionSummary = safeTransactions.map(tx => `- ${tx.client}: ${tx.amount} (${tx.status}, ${tx.date})`).join('\n');
+    const transactionSummary = safeTransactions
+      .map((tx) => `- ${tx.client}: ${tx.amount} (${tx.status}, ${tx.date})`)
+      .join("\n");
 
     const prompt = `
       Légy egy profi B2B SaaS pénzügyi tanácsadó. Elemezd a következő élő adatokat:
@@ -364,53 +455,60 @@ export default async function DashboardPage() {
 
     const response = await model.generateContent(prompt);
     aiAnalysis = response.response.text();
-
   } catch (error) {
     console.error("Gemini hiba:", error);
     // Ha elértük a limitet, vagy bármi hiba van, nem omlik össze az app, ezt fogja kiírni:
-    aiAnalysis = "Az intelligens asszisztens jelenleg pihen (Rate Limit elérve). Frissítsd az oldalt egy kicsit később!"
+    aiAnalysis =
+      "Az intelligens asszisztens jelenleg pihen (Rate Limit elérve). Frissítsd az oldalt egy kicsit később!";
   }
-
 
   return (
     <div className="p-8 bg-gray-50 dark:bg-gray-950 min-h-screen transition-colors duration-200">
       {/* Címsor */}
       <div className="flex justify-between items-center mb-6">
-  <div>
-    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Pénzügyi Irányítópult</h1>
-    {/* Ha gondolod, ide is mehet egy kis alcím, mint a grafikonoknál */}
-    <p className="text-xs text-gray-500 dark:text-gray-400">Üdvözlünk újra a rendszerben!</p>
-  </div>
-  
-  {/* 🔥 Itt van a jobb oldali gombcsoport, szépen egymás mellé rendezve a flex és gap segítségével */}
-  <div className="flex items-center gap-2">
-    <ThemeToggle />
-    
-    {/* Behelyettesítjük a sima szöveges nevet a vadiúj, interaktív menünkre */}
-    <UserMenu username={username} />
-  </div>
-</div>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            Pénzügyi Irányítópult
+          </h1>
+          {/* Ha gondolod, ide is mehet egy kis alcím, mint a grafikonoknál */}
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            Üdvözlünk újra a rendszerben!
+          </p>
+        </div>
+
+        {/* 🔥 Itt van a jobb oldali gombcsoport, szépen egymás mellé rendezve a flex és gap segítségével */}
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+
+          {/* Behelyettesítjük a sima szöveges nevet a vadiúj, interaktív menünkre */}
+          <UserMenu username={username} />
+        </div>
+      </div>
 
       {/* A RÁCS (GRID) */}
       {/* 🚀 SZIMMETRIKUS TŐZSDEI RÁCS (GRID) - 4 OSZLOPOS ELRENDEZÉS */}
       {/* 🚀 ELIT SAAS TŐZSDEI RÁCS (2x4-ES SZIMMETRIA, SÖTÉT MÓDÚ GRAFIT SZÍNNEL) */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        
         {/* ================= ELSŐ SOR: FŐ METRIKÁK ================= */}
-        
+
         {/* 1. KÁRTYA: DINAMIKUS MRR */}
         <div className="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
-          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">MRR (Havi Ismétlődő Bevétel)</p>
+          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+            MRR (Havi Ismétlődő Bevétel)
+          </p>
           <div className="flex items-baseline gap-2 mt-2">
             <span className="text-3xl font-bold text-gray-900 dark:text-white">
-              ${mrrMetrics.currentMRR.toLocaleString('en-US')}
+              ${mrrMetrics.currentMRR.toLocaleString("en-US")}
             </span>
-            <span className={`text-xs font-semibold px-1.5 py-0.5 rounded ${
-              mrrMetrics.isPositive 
-                ? 'text-green-600 bg-green-50 dark:bg-green-950/30 dark:text-green-400' 
-                : 'text-red-600 bg-red-50 dark:bg-red-950/30 dark:text-red-400'
-            }`}>
-              {mrrMetrics.isPositive ? '+' : '-'}{mrrMetrics.percentageChange}%
+            <span
+              className={`text-xs font-semibold px-1.5 py-0.5 rounded ${
+                mrrMetrics.isPositive
+                  ? "text-green-600 bg-green-50 dark:bg-green-950/30 dark:text-green-400"
+                  : "text-red-600 bg-red-50 dark:bg-red-950/30 dark:text-red-400"
+              }`}
+            >
+              {mrrMetrics.isPositive ? "+" : "-"}
+              {mrrMetrics.percentageChange}%
             </span>
           </div>
           <p className="text-xs text-gray-400 mt-1">az előző hónaphoz képest</p>
@@ -418,41 +516,52 @@ export default async function DashboardPage() {
 
         {/* 2. KÁRTYA: ÖSSZES EDDIGI BEVÉTEL */}
         <div className="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
-          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Összes Bevétel (Total Revenue)</p>
+          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+            Összes Bevétel (Total Revenue)
+          </p>
           <div className="flex items-baseline gap-2 mt-2">
             <span className="text-3xl font-bold text-gray-900 dark:text-white">
-              ${mrrMetrics.totalRevenue.toLocaleString('en-US')}
+              ${mrrMetrics.totalRevenue.toLocaleString("en-US")}
             </span>
             <span className="text-xs font-semibold px-1.5 py-0.5 rounded text-blue-600 bg-blue-50 dark:bg-blue-950/30 dark:text-blue-400">
               Mióta létezik
             </span>
           </div>
-          <p className="text-xs text-gray-400 mt-1">az összes sikeres tranzakció összege</p>
+          <p className="text-xs text-gray-400 mt-1">
+            az összes sikeres tranzakció összege
+          </p>
         </div>
 
         {/* 3. KÁRTYA: VALÓDI EGYEDI ÜGYFELEK (Dinamikus szűréssel) */}
         <div className="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
-          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Aktív Ügyfelek (Cégek)</p>
-          
+          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+            Aktív Ügyfelek (Cégek)
+          </p>
+
           {/* Nagy szám: Csak a jelenlegi hónap */}
           <div className="flex items-baseline gap-2 mt-2">
             <p className="text-3xl font-bold text-gray-900 dark:text-white">
               {mrrMetrics.uniqueCustomers.currentMonthCount} cég
             </p>
-            <span className={`text-xs font-semibold px-1.5 py-0.5 rounded ${
-              mrrMetrics.uniqueCustomers.isPositive
-                ? "text-green-600 bg-green-50 dark:bg-green-950/30 dark:text-green-400"
-                : "text-red-600 bg-red-50 dark:bg-red-950/30 dark:text-red-400"
-            }`}>
-              {mrrMetrics.uniqueCustomers.changeText.split(' ')[0]} {/* Csak a százalék, pl: +10% */}
+            <span
+              className={`text-xs font-semibold px-1.5 py-0.5 rounded ${
+                mrrMetrics.uniqueCustomers.isPositive
+                  ? "text-green-600 bg-green-50 dark:bg-green-950/30 dark:text-green-400"
+                  : "text-red-600 bg-red-50 dark:bg-red-950/30 dark:text-red-400"
+              }`}
+            >
+              {mrrMetrics.uniqueCustomers.changeText.split(" ")[0]}{" "}
+              {/* Csak a százalék, pl: +10% */}
             </span>
           </div>
-          
+
           <p className="text-xs text-gray-400 mt-1">a jelenlegi hónapban</p>
-          
+
           {/* Elválasztó vonal és a mindenkori összesen sor */}
           <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-800 flex justify-between items-center">
-            <span className="text-xs text-gray-500 dark:text-gray-400">Eddigi összes partner:</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400">
+              Eddigi összes partner:
+            </span>
             <span className="text-xs font-bold text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-800 px-2 py-0.5 rounded">
               {mrrMetrics.uniqueCustomers.totalAllTimeCount} egyedi cég
             </span>
@@ -461,17 +570,22 @@ export default async function DashboardPage() {
 
         {/* 4. KÁRTYA: STATIKUS CHURN (Eredeti) */}
         <div className="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
-          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{stats.churn.title}</p>
-          <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">{stats.churn.amount}</p>
-          <span className={`text-xs font-medium px-2 py-0.5 rounded-md mt-2 inline-block ${
-            stats.churn.positive 
-              ? "text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/30" 
-              : "text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30"
-          }`}>
+          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+            {stats.churn.title}
+          </p>
+          <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">
+            {stats.churn.amount}
+          </p>
+          <span
+            className={`text-xs font-medium px-2 py-0.5 rounded-md mt-2 inline-block ${
+              stats.churn.positive
+                ? "text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/30"
+                : "text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30"
+            }`}
+          >
             {stats.churn.change} az előző hónaphoz képest
           </span>
         </div>
-
 
         {/* ================= MÁSODIK SOR: 3-CSÍKOS TŐZSDEI TERMINÁL PANELKÉK ================= */}
 
@@ -484,12 +598,15 @@ export default async function DashboardPage() {
             <span className="text-xs font-medium px-2.5 py-1.5 rounded-md block text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/30">
               • Jelenlegi hónap: {mrrMetrics.flowTx.current} művelet
             </span>
-            <span className={`text-xs font-medium px-2.5 py-1.5 rounded-md block ${
-              mrrMetrics.flowTx.isPositive 
-                ? "text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/30" 
-                : "text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30"
-            }`}>
-              • {mrrMetrics.flowTx.isPositive ? '+' : '-'}{mrrMetrics.flowTx.change}% mozgás az előzőhöz képest
+            <span
+              className={`text-xs font-medium px-2.5 py-1.5 rounded-md block ${
+                mrrMetrics.flowTx.isPositive
+                  ? "text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/30"
+                  : "text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30"
+              }`}
+            >
+              • {mrrMetrics.flowTx.isPositive ? "+" : "-"}
+              {mrrMetrics.flowTx.change}% mozgás az előzőhöz képest
             </span>
             <span className="text-xs font-medium px-2.5 py-1.5 rounded-md block text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/30">
               • Mindenkori összes indított: {mrrMetrics.flowTx.total} tranzakció
@@ -506,12 +623,15 @@ export default async function DashboardPage() {
             <span className="text-xs font-medium px-2.5 py-1.5 rounded-md block text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/30">
               • Jelenlegi hónap: {mrrMetrics.successTx.current} db
             </span>
-            <span className={`text-xs font-medium px-2.5 py-1.5 rounded-md block ${
-              mrrMetrics.successTx.isPositive 
-                ? "text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/30" 
-                : "text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30"
-            }`}>
-              • {mrrMetrics.successTx.isPositive ? '+' : '-'}{mrrMetrics.successTx.change}% változás az előzőhöz képest
+            <span
+              className={`text-xs font-medium px-2.5 py-1.5 rounded-md block ${
+                mrrMetrics.successTx.isPositive
+                  ? "text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/30"
+                  : "text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30"
+              }`}
+            >
+              • {mrrMetrics.successTx.isPositive ? "+" : "-"}
+              {mrrMetrics.successTx.change}% változás az előzőhöz képest
             </span>
             <span className="text-xs font-medium px-2.5 py-1.5 rounded-md block text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/30">
               • Mindenkori összesen: {mrrMetrics.successTx.total} db
@@ -525,25 +645,35 @@ export default async function DashboardPage() {
             ⏳ Függőben lévő tranzakciók
           </p>
           <div className="space-y-1.5">
-            <span className={`text-xs font-medium px-2.5 py-1.5 rounded-md block ${
-              mrrMetrics.pending.current > 0 
-                ? "text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30" 
-                : "text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/30"
-            }`}>
+            <span
+              className={`text-xs font-medium px-2.5 py-1.5 rounded-md block ${
+                mrrMetrics.pending.current > 0
+                  ? "text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30"
+                  : "text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/30"
+              }`}
+            >
               • Jelenlegi hónap: {mrrMetrics.pending.current} db
             </span>
-            <span className={`text-xs font-medium px-2.5 py-1.5 rounded-md block ${
-              mrrMetrics.pending.current > 0 
-                ? "text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30" 
-                : "text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/30"
-            }`}>
-              • {mrrMetrics.pending.current > 0 ? `+${mrrMetrics.pending.change}% felhalmozódás` : "0% változás"} az előzőhöz képest
+            <span
+              className={`text-xs font-medium px-2.5 py-1.5 rounded-md block ${
+                mrrMetrics.pending.current > 0
+                  ? "text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30"
+                  : "text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/30"
+              }`}
+            >
+              •{" "}
+              {mrrMetrics.pending.current > 0
+                ? `+${mrrMetrics.pending.change}% felhalmozódás`
+                : "0% változás"}{" "}
+              az előzőhöz képest
             </span>
-            <span className={`text-xs font-medium px-2.5 py-1.5 rounded-md block ${
-              mrrMetrics.pending.total > 0 
-                ? "text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30" 
-                : "text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/30"
-            }`}>
+            <span
+              className={`text-xs font-medium px-2.5 py-1.5 rounded-md block ${
+                mrrMetrics.pending.total > 0
+                  ? "text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30"
+                  : "text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/30"
+              }`}
+            >
               • Mindenkori összesen: {mrrMetrics.pending.total} db
             </span>
           </div>
@@ -555,30 +685,39 @@ export default async function DashboardPage() {
             ⚠️ Meghiúsult tranzakciók
           </p>
           <div className="space-y-1.5">
-            <span className={`text-xs font-medium px-2.5 py-1.5 rounded-md block ${
-              mrrMetrics.failed.current > 0 
-                ? "text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30" 
-                : "text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/30"
-            }`}>
+            <span
+              className={`text-xs font-medium px-2.5 py-1.5 rounded-md block ${
+                mrrMetrics.failed.current > 0
+                  ? "text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30"
+                  : "text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/30"
+              }`}
+            >
               • Jelenlegi hónap: {mrrMetrics.failed.current} db
             </span>
-            <span className={`text-xs font-medium px-2.5 py-1.5 rounded-md block ${
-              mrrMetrics.failed.current > 0 
-                ? "text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30" 
-                : "text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/30"
-            }`}>
-              • {mrrMetrics.failed.current > 0 ? `+${mrrMetrics.failed.change}% hibanövekedés` : "0% hibaarány"} az előzőhöz képest
+            <span
+              className={`text-xs font-medium px-2.5 py-1.5 rounded-md block ${
+                mrrMetrics.failed.current > 0
+                  ? "text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30"
+                  : "text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/30"
+              }`}
+            >
+              •{" "}
+              {mrrMetrics.failed.current > 0
+                ? `+${mrrMetrics.failed.change}% hibanövekedés`
+                : "0% hibaarány"}{" "}
+              az előzőhöz képest
             </span>
-            <span className={`text-xs font-medium px-2.5 py-1.5 rounded-md block ${
-              mrrMetrics.failed.total > 0 
-                ? "text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30" 
-                : "text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/30"
-            }`}>
+            <span
+              className={`text-xs font-medium px-2.5 py-1.5 rounded-md block ${
+                mrrMetrics.failed.total > 0
+                  ? "text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30"
+                  : "text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/30"
+              }`}
+            >
               • Mindenkori összesen: {mrrMetrics.failed.total} db
             </span>
           </div>
         </div>
-
       </div>
 
       {/* KÖZÖS DIAGRAM RÁCS: Desktopon egymás mellett, mobilon egymás alatt */}

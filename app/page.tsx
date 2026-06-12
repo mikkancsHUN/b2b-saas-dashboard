@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Link from "next/link";
 export default function Home() {
   // Ide, a return UTASÍTÁS ELÉ jön a console.log.
   // Ez a rész még a tiszta logika, ami lefut, mielőtt a HTML megszületne.
@@ -10,8 +10,8 @@ export default function Home() {
         Üdvözöllek a B2B SaaS Dashboard projektben!
       </h1>
       <Link href="/dashboard" className="mt-4 text-blue-500 hover:underline">
-      Irany a Dashboard!
-    </Link>
+        Irany a Dashboard!
+      </Link>
     </main>
   );
 }
