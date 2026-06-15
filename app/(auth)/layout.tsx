@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import Link from "next/link"; // 🔥 AZ ÚJ IMPORT A VILLÁMGYORS NAVIGÁCIÓHOZ
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
@@ -19,15 +20,22 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
         v4.0.0-beta.rc1
       </div>
 
-      {/* 🔮 Felső Logó & Cím szekció */}
-      <div className="relative z-10 mb-8 text-center flex flex-col items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-indigo-500 flex items-center justify-center shadow-[0_0_20px_rgba(99,102,241,0.3)]">
+      {/* 🔮 Felső Logó & Cím szekció – Átalakítva interaktív Linkké */}
+      <Link
+        href="/"
+        className="relative z-10 mb-8 text-center flex flex-col items-center gap-3 group cursor-pointer select-none"
+      >
+        {/* A 'group-hover' miatt a doboz izzása és a betűk is finoman reagálnak, ha rátartod az egeret */}
+        <div className="w-10 h-10 rounded-xl bg-indigo-500 flex items-center justify-center shadow-[0_0_20px_rgba(99,102,241,0.3)] transition-transform duration-200 group-hover:scale-105">
           <span className="text-sm font-black text-white">F</span>
         </div>
-        <h1 className="text-3xl font-black tracking-tight text-white">
-          Finánc<span className="text-indigo-500 font-extrabold">SaaS</span>
+        <h1 className="text-3xl font-black tracking-tight text-white transition-colors duration-200 group-hover:text-gray-200">
+          Finánc
+          <span className="text-indigo-500 font-extrabold transition-colors duration-200 group-hover:text-indigo-400">
+            SaaS
+          </span>
         </h1>
-      </div>
+      </Link>
 
       {/* 📦 A "Processzor" kártya külső izzása */}
       <div className="relative w-full max-w-md z-10">

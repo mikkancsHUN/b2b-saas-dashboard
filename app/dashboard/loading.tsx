@@ -1,4 +1,3 @@
-// app/dashboard/loading.tsx
 export default function DashboardLoading() {
   return (
     <div className="p-8 bg-gray-50 dark:bg-gray-950 min-h-screen transition-colors duration-200 overflow-hidden">

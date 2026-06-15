@@ -10,7 +10,8 @@ import {
   Tooltip,
   CartesianGrid,
 } from "recharts";
-import { ChartDataPoint } from "./page";
+
+import { ChartDataPoint } from "./utils";
 
 interface UsageChartProps {
   chartData: ChartDataPoint[];

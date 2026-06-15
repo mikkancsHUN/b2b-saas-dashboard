@@ -15,7 +15,7 @@ import {
   NameType,
   ValueType,
 } from "recharts/types/component/DefaultTooltipContent";
-import { ChartDataPoint } from "./page";
+import { ChartDataPoint } from "./utils";
 
 interface RevenueChartProps {
   chartData: ChartDataPoint[];
