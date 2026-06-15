@@ -16,268 +16,190 @@ interface UsageChartProps {
   chartData: ChartDataPoint[];
 }
 
-interface UsageChartProps {
-  chartData: ChartDataPoint[];
-}
-
 export default function UsageChart({ chartData = [] }: UsageChartProps) {
   const data = chartData;
 
-  // 🔥 1. ÁLLAPOTKEZELÉS (State): Külön-külön kapcsolható minden egyes vonal
-  const [showAll, setShowAll] = useState(true);
-  const [showSuccess, setShowSuccess] = useState(true);
-  const [showPending, setShowPending] = useState(false); // Alapból legyen kikapcsolva, hogy ne legyen túl zsúfolt
-  const [showFailed, setShowFailed] = useState(false); // Alapból kikapcsolva
+  // 🔥 CLEAN CODE SZEKCIÓ: 4 különálló state helyett egyetlen tiszta objektum
+  const [activeFilters, setActiveFilters] = useState({
+    all: true,
+    success: true,
+    pending: false,
+    failed: false,
+  });
 
-  // Konfiguráció a gombokhoz és a grafikon színeihez
   const config = {
     all: {
       label: "Összesen",
-      color: "bg-blue-500",
-      stroke: "#3B82F6",
+      color: "bg-sky-500",
+      stroke: "#0EA5E9",
       grad: "colorAll",
+      dataKey: "transactions",
+      name: "Összes tranzakció",
+      strokeWidth: 3,
     },
     success: {
       label: "Sikeres",
-      color: "bg-green-500",
-      stroke: "#10B981",
+      color: "bg-green-400",
+      stroke: "#4ADE80",
       grad: "colorSuccess",
+      dataKey: "successfulCount",
+      name: "Sikeres",
+      strokeWidth: 2.5,
     },
     pending: {
       label: "Függőben",
-      color: "bg-amber-500",
-      stroke: "#F59E0B",
+      color: "bg-yellow-400",
+      stroke: "#FACC15",
       grad: "colorPending",
+      dataKey: "pendingCount",
+      name: "Függőben",
+      strokeWidth: 2.5,
     },
     failed: {
       label: "Meghiúsult",
-      color: "bg-red-500",
-      stroke: "#EF4444",
+      color: "bg-red-400",
+      stroke: "#FF3366",
       grad: "colorFailed",
+      dataKey: "failedCount",
+      name: "Meghiúsult",
+      strokeWidth: 2.5,
     },
   };
 
   return (
-    <div className="p-6 bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 transition-colors h-full flex flex-col justify-between">
+    <div className="group relative bg-gradient-to-br from-white to-gray-50/50 dark:from-gray-950 dark:to-indigo-950/20 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-indigo-950/40 backdrop-blur-md h-full flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-indigo-500/30">
       {/* FEJLÉC ÉS KAPCSOLÓGOMBOK */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white">
             Tranzakciók Mennyisége
           </h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <p className="text-xs text-gray-400 dark:text-gray-500">
             Havi bontásban feldolgozott műveletek száma
           </p>
         </div>
 
-        {/* 🔥 2. INTERAKTÍV KAPCSOLÓ PULT (Pöclikék) */}
-        <div className="flex flex-wrap gap-1 bg-gray-50 dark:bg-gray-900 p-1 rounded-lg border border-gray-100 dark:border-gray-700">
-          {/* Összesen gomb */}
-          <button
-            onClick={() => setShowAll(!showAll)}
-            className={`text-xs font-semibold px-2.5 py-1.5 rounded-md transition-all duration-200 flex items-center gap-1.5 ${
-              showAll
-                ? "bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm"
-                : "text-gray-400 opacity-50"
-            }`}
-          >
-            <span className={`w-2 h-2 rounded-full ${config.all.color}`} />
-            {config.all.label}
-          </button>
+        {/* 🔥 TELJESEN DINAMIKUS, STABIL INTERAKTÍV PULT */}
+        <div className="flex flex-wrap gap-1 bg-gray-50 dark:bg-gray-950 p-1 rounded-lg border border-gray-100 dark:border-gray-800 self-start sm:self-center">
+          {(Object.keys(config) as Array<keyof typeof config>).map((key) => {
+            const isActive = activeFilters[key];
 
-          {/* Sikeres gomb */}
-          <button
-            onClick={() => setShowSuccess(!showSuccess)}
-            className={`text-xs font-semibold px-2.5 py-1.5 rounded-md transition-all duration-200 flex items-center gap-1.5 ${
-              showSuccess
-                ? "bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm"
-                : "text-gray-400 opacity-50"
-            }`}
-          >
-            <span className={`w-2 h-2 rounded-full ${config.success.color}`} />
-            {config.success.label}
-          </button>
-
-          {/* Függőben gomb */}
-          <button
-            onClick={() => setShowPending(!showPending)}
-            className={`text-xs font-semibold px-2.5 py-1.5 rounded-md transition-all duration-200 flex items-center gap-1.5 ${
-              showPending
-                ? "bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm"
-                : "text-gray-400 opacity-50"
-            }`}
-          >
-            <span className={`w-2 h-2 rounded-full ${config.pending.color}`} />
-            {config.pending.label}
-          </button>
-
-          {/* Meghiúsult gomb */}
-          <button
-            onClick={() => setShowFailed(!showFailed)}
-            className={`text-xs font-semibold px-2.5 py-1.5 rounded-md transition-all duration-200 flex items-center gap-1.5 ${
-              showFailed
-                ? "bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm"
-                : "text-gray-400 opacity-50"
-            }`}
-          >
-            <span className={`w-2 h-2 rounded-full ${config.failed.color}`} />
-            {config.failed.label}
-          </button>
+            return (
+              <button
+                key={key}
+                // Az objektum kulcsa alapján egyetlen sorban átbillentjük a megfelelő state-et
+                onClick={() =>
+                  setActiveFilters((prev) => ({ ...prev, [key]: !prev[key] }))
+                }
+                // Fix 1px border aktív és inaktív állapotban is -> nincs ugrálás!
+                className={`text-xs font-semibold px-2.5 py-1.5 rounded-md transition-all duration-200 flex items-center gap-1.5 border ${
+                  isActive
+                    ? "bg-white dark:bg-gray-900/40 text-gray-900 dark:text-white shadow-sm border-gray-200 dark:border-gray-800"
+                    : "border-transparent text-gray-400 opacity-50 hover:opacity-80 hover:bg-gray-100/50 dark:hover:bg-gray-900/30"
+                }`}
+              >
+                <span className={`w-2 h-2 rounded-full ${config[key].color}`} />
+                {config[key].label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
       {/* DIAGRAM SZEKCIÓ */}
-      <div className="w-full h-[300px] -mx-6 pl-2 pr-0 lg:mx-0 lg:px-0">
+      <div className="w-full h-[280px] -mx-4 pr-2 pl-0 lg:mx-0 lg:px-0 flex-1 min-h-[14rem]">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
             data={data}
             margin={{ top: 10, right: 0, left: 0, bottom: 0 }}
           >
-            {/* 🔥 3. GRADIENT DEFINÍCIÓK MINDEGYIK SZÍNHEZ */}
             <defs>
-              {/* Kék (Összesen) */}
-              <linearGradient id={config.all.grad} x1="0" y1="0" x2="0" y2="1">
-                <stop
-                  offset="5%"
-                  stopColor={config.all.stroke}
-                  stopOpacity={0.15}
-                />
-                <stop
-                  offset="95%"
-                  stopColor={config.all.stroke}
-                  stopOpacity={0}
-                />
-              </linearGradient>
-              {/* Zöld (Sikeres) */}
-              <linearGradient
-                id={config.success.grad}
-                x1="0"
-                y1="0"
-                x2="0"
-                y2="1"
-              >
-                <stop
-                  offset="5%"
-                  stopColor={config.success.stroke}
-                  stopOpacity={0.15}
-                />
-                <stop
-                  offset="95%"
-                  stopColor={config.success.stroke}
-                  stopOpacity={0}
-                />
-              </linearGradient>
-              {/* Sárga (Függőben) */}
-              <linearGradient
-                id={config.pending.grad}
-                x1="0"
-                y1="0"
-                x2="0"
-                y2="1"
-              >
-                <stop
-                  offset="5%"
-                  stopColor={config.pending.stroke}
-                  stopOpacity={0.15}
-                />
-                <stop
-                  offset="95%"
-                  stopColor={config.pending.stroke}
-                  stopOpacity={0}
-                />
-              </linearGradient>
-              {/* Vörös (Meghiúsult) */}
-              <linearGradient
-                id={config.failed.grad}
-                x1="0"
-                y1="0"
-                x2="0"
-                y2="1"
-              >
-                <stop
-                  offset="5%"
-                  stopColor={config.failed.stroke}
-                  stopOpacity={0.15}
-                />
-                <stop
-                  offset="95%"
-                  stopColor={config.failed.stroke}
-                  stopOpacity={0}
-                />
-              </linearGradient>
+              {(Object.keys(config) as Array<keyof typeof config>).map(
+                (key) => (
+                  <linearGradient
+                    key={key}
+                    id={config[key].grad}
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
+                    <stop
+                      offset="5%"
+                      stopColor={config[key].stroke}
+                      stopOpacity={0.15}
+                    />
+                    <stop
+                      offset="95%"
+                      stopColor={config[key].stroke}
+                      stopOpacity={0}
+                    />
+                  </linearGradient>
+                ),
+              )}
             </defs>
 
             <CartesianGrid
               strokeDasharray="3 3"
-              className="stroke-gray-200 dark:stroke-gray-700"
+              className="stroke-gray-100 dark:stroke-gray-800/50"
+              vertical={false}
             />
 
             <XAxis
               dataKey="month"
-              className="text-xs fill-gray-500 dark:fill-gray-400"
+              axisLine={false}
+              tickLine={false}
+              className="fill-gray-400 dark:fill-gray-500"
+              dy={10}
+              style={{
+                fontSize: "10px",
+                fontFamily: "ui-sans-serif, system-ui, sans-serif",
+                fontWeight: 600,
+                textTransform: "uppercase",
+                letterSpacing: "0.05em",
+              }}
             />
             <YAxis
-              className="text-xs fill-gray-500 dark:fill-gray-400"
+              axisLine={false}
+              tickLine={false}
+              className="fill-gray-400 dark:fill-gray-500"
               domain={[0, "dataMax + 2"]}
               tickFormatter={(value) => `${value} db`}
+              dx={-8}
+              style={{
+                fontSize: "11px",
+                fontFamily:
+                  "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+                letterSpacing: "-0.02em",
+              }}
             />
 
             <Tooltip
               contentStyle={{
                 backgroundColor: "rgba(17, 24, 39, 0.95)",
-                borderRadius: "8px",
-                border: "1px solid #374151",
+                borderRadius: "12px",
+                border: "1px solid rgba(55, 65, 81, 0.6)",
                 color: "#FFF",
+                fontSize: "12px",
+                boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
               }}
             />
 
-            {/* 🔥 4. A 4 DINAMIKUS AREA HULLÁM (Csak akkor renderelődnek, ha a hozzájuk tartozó state true!) */}
-            {showAll && (
-              <Area
-                type="monotone"
-                dataKey="transactions"
-                name="Összes tranzakció"
-                stroke={config.all.stroke}
-                strokeWidth={3}
-                fillOpacity={1}
-                fill={`url(#${config.all.grad})`}
-              />
-            )}
-
-            {showSuccess && (
-              <Area
-                type="monotone"
-                dataKey="successfulCount"
-                name="Sikeres"
-                stroke={config.success.stroke}
-                strokeWidth={2.5}
-                fillOpacity={1}
-                fill={`url(#${config.success.grad})`}
-              />
-            )}
-
-            {showPending && (
-              <Area
-                type="monotone"
-                dataKey="pendingCount"
-                name="Függőben"
-                stroke={config.pending.stroke}
-                strokeWidth={2.5}
-                fillOpacity={1}
-                fill={`url(#${config.pending.grad})`}
-              />
-            )}
-
-            {showFailed && (
-              <Area
-                type="monotone"
-                dataKey="failedCount"
-                name="Meghiúsult"
-                stroke={config.failed.stroke}
-                strokeWidth={2.5}
-                fillOpacity={1}
-                fill={`url(#${config.failed.grad})`}
-              />
+            {/* 🔥 TELJESEN DINAMIKUS GRAFIKON MEGJELENÍTÉS */}
+            {(Object.keys(config) as Array<keyof typeof config>).map(
+              (key) =>
+                activeFilters[key] && (
+                  <Area
+                    key={key}
+                    type="monotone"
+                    dataKey={config[key].dataKey}
+                    name={config[key].name}
+                    stroke={config[key].stroke}
+                    strokeWidth={config[key].strokeWidth}
+                    fillOpacity={1}
+                    fill={`url(#${config[key].grad})`}
+                  />
+                ),
             )}
           </AreaChart>
         </ResponsiveContainer>

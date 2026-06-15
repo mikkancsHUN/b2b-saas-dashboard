@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { getSupabaseClient } from "@/lib/supabaseClient";
+// 1. Importáljuk be az új megosztott gomb komponenst
+import { Button } from "@/components/ui/Button";
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("");
@@ -18,16 +20,13 @@ export default function RegisterPage() {
     setLoading(true);
     setError(null);
 
-    // 🔥 JAVÍTÁS: Itt is az új klienst indítjuk el
     const supabase = getSupabaseClient();
 
-    // 🔥 Supabase regisztráció meghívása
     const { error: authError } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: `${window.location.origin}/dashboard`,
-        // 👇 JAVÍTÁS: Mostantól pontosan a 'display_name' kulcsot küldjük be!
         data: {
           display_name: username.trim(),
         },
@@ -46,34 +45,39 @@ export default function RegisterPage() {
   return (
     <>
       <div className="mb-6">
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+        <h2 className="text-2xl font-bold tracking-tight text-white">
           Fiók létrehozása
         </h2>
-        <p className="text-xs text-gray-400 mt-1">
+        <p className="text-xs text-gray-400 mt-1.5">
           Regisztrálj, hogy hozzáférj a dashboardhoz.
         </p>
       </div>
 
       {error && (
-        <div className="mb-4 p-3 bg-red-50 dark:bg-red-955/30 text-red-600 dark:text-red-400 text-xs font-semibold rounded-lg border border-red-100 dark:border-red-900/50">
-          ⚠️ {error}
+        <div className="mb-5 p-3.5 bg-red-900/20 text-red-400 text-xs font-medium rounded-xl border border-red-900/40 backdrop-blur-sm flex items-center gap-2">
+          <span>⚠️</span>
+          <span>{error}</span>
         </div>
       )}
 
       {success ? (
-        <div className="text-center py-4 space-y-3">
-          <div className="text-3xl">📨</div>
-          <h3 className="text-sm font-bold text-gray-900 dark:text-white">
-            Sikeres regisztráció!
-          </h3>
-          <p className="text-xs text-gray-400 max-w-xs mx-auto">
-            Küldtünk egy megerősítő linket az email címedre. Kérjük, kattints rá
-            a fiókod aktiválásához!
-          </p>
+        <div className="text-center py-6 space-y-4">
+          <div className="w-12 h-12 rounded-full bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-xl text-blue-400 mx-auto">
+            📨
+          </div>
+          <div className="space-y-1.5">
+            <h3 className="text-base font-bold text-white">
+              Sikeres regisztráció!
+            </h3>
+            <p className="text-xs text-gray-400 max-w-xs mx-auto leading-relaxed">
+              Küldtünk egy megerősítő linket az email címedre. Kérjük, kattints
+              rá a fiókod aktiválásához!
+            </p>
+          </div>
           <div className="pt-4">
             <Link
               href="/login"
-              className="text-xs text-indigo-505 font-bold hover:text-indigo-400 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 px-4 py-2 rounded-lg transition-colors"
+              className="inline-block text-xs text-gray-300 font-bold hover:text-white border border-gray-800 hover:border-gray-700 bg-gray-900/50 px-5 py-2.5 rounded-xl transition-all backdrop-blur-sm"
             >
               Vissza a bejelentkezéshez
             </Link>
@@ -82,21 +86,21 @@ export default function RegisterPage() {
       ) : (
         <form onSubmit={handleRegister} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">
+            <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">
               Felhasználónév
             </label>
             <input
-              type="type"
+              type="text"
               required
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-lg text-sm focus:outline-none focus:border-indigo-500 text-gray-900 dark:text-white transition-colors"
+              className="w-full px-3.5 py-2.5 bg-gray-950/60 border border-gray-800 rounded-xl text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 text-white placeholder-gray-600 transition-all duration-200"
               placeholder="username123"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">
+            <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">
               Email cím
             </label>
             <input
@@ -104,32 +108,30 @@ export default function RegisterPage() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-lg text-sm focus:outline-none focus:border-indigo-500 text-gray-900 dark:text-white transition-colors"
-              placeholder="name@company.com"
+              className="w-full px-3.5 py-2.5 bg-gray-950/60 border border-gray-800 rounded-xl text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 text-white placeholder-gray-600 transition-all duration-200"
+              placeholder="nev@ceg.com"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">
+            <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">
               Jelszó
             </label>
             <div className="relative">
               <input
-                type={showPassword ? "text" : "password"} // <-- Dinamikus típus váltás!
+                type={showPassword ? "text" : "password"}
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2 pr-10 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-lg text-sm focus:outline-none focus:border-indigo-500 text-gray-900 dark:text-white transition-colors"
+                className="w-full px-3.5 py-2.5 pr-11 bg-gray-950/60 border border-gray-800 rounded-xl text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 text-white placeholder-gray-600 transition-all duration-200"
                 placeholder="••••••••"
               />
-              {/* A kis interaktív szem gomb az input jobb szélén */}
               <button
-                type="button" // <-- KRITIKUS: button típusú legyen, különben a formot akarná beküldeni!
+                type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-500 hover:text-gray-300 transition-colors"
               >
                 {showPassword ? (
-                  // 👁️ Áthúzott szem ikon (ha látható a jelszó)
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
@@ -145,7 +147,6 @@ export default function RegisterPage() {
                     />
                   </svg>
                 ) : (
-                  // 👁️ Nyitott szem ikon (ha rejtett a jelszó)
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
@@ -170,23 +171,25 @@ export default function RegisterPage() {
             </div>
           </div>
 
-          <button
+          {/* 🔥 CSRE A PRÉMIUM PÖRGŐS GOMBRA */}
+          <Button
             type="submit"
-            disabled={loading}
-            className="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-600/50 text-white font-semibold text-sm rounded-lg shadow-sm transition-all duration-200"
+            isLoading={loading}
+            className="group relative w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl shadow-[0_0_20px_rgba(37,99,235,0.3)] hover:shadow-[0_0_25px_rgba(37,99,235,0.5)] transition-all duration-300 overflow-hidden transform hover:-translate-y-0.5 active:translate-y-0"
           >
-            {loading ? "Fiók létrehozása..." : "Regisztráció indítása ✨"}
-          </button>
+            <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/15 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out pointer-events-none" />
+            <span>Regisztráció indítása</span>
+          </Button>
         </form>
       )}
 
       {!success && (
-        <div className="mt-6 text-center border-t border-gray-100 dark:border-gray-800 pt-4">
+        <div className="mt-6 text-center border-t border-gray-900 pt-5">
           <p className="text-xs text-gray-400">
             Már van fiókod?{" "}
             <Link
               href="/login"
-              className="text-indigo-500 hover:text-indigo-400 font-bold"
+              className="text-blue-400 hover:text-blue-300 font-bold transition-colors"
             >
               Jelentkezz be
             </Link>

@@ -19,59 +19,66 @@ interface TransactionTableProps {
 export default function TransactionTable({
   initialTransactions,
 }: TransactionTableProps) {
-  // Állapotok a keresésnek és a státusz szűrésnek
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("Összes"); // Összes, Sikeres, Függőben, Meghiúsult
+  const [statusFilter, setStatusFilter] = useState("Összes");
 
-  // 🔥 A VARÁZSLAT: Valós időben szűrjük a tömböt a React állapot alapján
   const filteredTransactions = initialTransactions.filter((tx) => {
-    // 1. Megnézzük, hogy a név vagy email tartalmazza-e a keresett szót (kis/nagybetű nem számít)
     const matchesSearch =
       tx.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
       tx.email.toLowerCase().includes(searchTerm.toLowerCase());
 
-    // 2. Megnézzük, hogy a státusz megegyezik-e a kiválasztott gombbal
     const matchesStatus =
       statusFilter === "Összes" || tx.status === statusFilter;
 
     return matchesSearch && matchesStatus;
   });
+
+  const getInitials = (name: string) => {
+    return name
+      ? name
+          .split(" ")
+          .map((n) => n[0])
+          .join("")
+          .substring(0, 2)
+          .toUpperCase()
+      : "TX";
+  };
+
   return (
-    <div className="mt-8 bg-white dark:bg-gray-900 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
-      {/* FEJLÉC ÉS AZ ÚJ SZŰRŐ INPUTOK */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+    <div className="mt-8 bg-white dark:bg-gray-900/40 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800/60 backdrop-blur-md transition-all duration-300 hover:border-indigo-500/10">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
         <div>
           <h2 className="text-lg font-bold text-gray-900 dark:text-white">
             Legutóbbi Tranzakciók
           </h2>
           <p className="text-xs text-gray-400 dark:text-gray-500">
-            Keresés és szűrés valós időben
+            Keresés és szűrés valós időben az adatbázisból
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
-          {/* KERESŐMEZŐ (INPUT) */}
-          <input
-            type="text"
-            placeholder="Ügyfél vagy email keresése..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="px-3 py-1.5 text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:border-indigo-500 dark:focus:border-indigo-400 w-full md:w-64 transition-colors"
-          />
+        <div className="flex items-center gap-3 w-full lg:w-auto">
+          <div className="relative w-full lg:w-64">
+            <input
+              type="text"
+              placeholder="Ügyfél vagy email..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-3 pr-3 py-2 text-sm bg-gray-50/50 dark:bg-gray-950/50 border border-gray-200 dark:border-gray-800 rounded-xl text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all duration-200 placeholder-gray-400 dark:placeholder-gray-600"
+            />
+          </div>
           <RefreshButton />
         </div>
       </div>
 
-      {/* STÁTUSZ GOMBOK */}
-      <div className="flex flex-wrap gap-2 mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">
+      <div className="flex flex-wrap gap-1.5 mb-6 border-b border-gray-100 dark:border-gray-800/60 pb-5">
         {["Összes", "Sikeres", "Függőben", "Meghiúsult"].map((status) => (
           <button
             key={status}
             onClick={() => setStatusFilter(status)}
-            className={`px-3 py-1 text-xs font-medium rounded-full transition-all ${
+            className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all duration-200 ${
               statusFilter === status
-                ? "bg-indigo-600 text-white shadow-sm"
-                : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+                ? "bg-gray-900 dark:bg-indigo-600 text-white dark:text-white shadow-sm"
+                : "bg-gray-50 dark:bg-gray-950 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
             }`}
           >
             {status}
@@ -79,48 +86,66 @@ export default function TransactionTable({
         ))}
       </div>
 
-      {/* TÁBLÁZAT */}
-      <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
+      <div className="overflow-x-auto -mx-6 px-6 lg:mx-0 lg:px-0">
+        <table className="w-full text-left border-collapse min-w-[600px]">
           <thead>
-            <tr className="border-b border-gray-100 dark:border-gray-800 text-sm font-medium text-gray-500 dark:text-gray-400">
-              <th className="pb-3">Ügyfél</th>
-              <th className="pb-3">Dátum</th>
-              <th className="pb-3">Összeg</th>
-              <th className="pb-3">Státusz</th>
+            <tr className="border-b border-gray-100 dark:border-gray-800/60 text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+              <th className="pb-3.5 font-semibold">Ügyfél</th>
+              <th className="pb-3.5 font-semibold">Dátum</th>
+              <th className="pb-3.5 font-semibold">Összeg</th>
+              <th className="pb-3.5 font-semibold">Státusz</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-50 dark:divide-gray-800 text-sm text-gray-700 dark:text-gray-300">
+          <tbody className="divide-y divide-gray-50 dark:divide-gray-800/40 text-sm">
             {filteredTransactions.length > 0 ? (
               filteredTransactions.map((tx) => (
                 <tr
                   key={tx.id}
-                  className="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors"
+                  className="hover:bg-gray-50/50 dark:hover:bg-gray-800/20 transition-all duration-150 group/row"
                 >
-                  <td className="py-3">
-                    <div className="font-medium text-gray-900 dark:text-gray-100">
-                      {tx.client}
-                    </div>
-                    <div className="text-xs text-gray-400 dark:text-gray-500">
-                      {tx.email}
+                  <td className="py-4 pr-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-xs font-bold text-gray-600 dark:text-gray-300 border border-gray-200/50 dark:border-gray-700/50 group-hover/row:border-indigo-500/30 transition-all font-mono">
+                        {getInitials(tx.client)}
+                      </div>
+                      <div>
+                        <div className="font-semibold text-gray-900 dark:text-gray-100 group-hover/row:text-indigo-500 transition-colors">
+                          {tx.client}
+                        </div>
+                        <div className="text-xs text-gray-400 dark:text-gray-500 font-medium">
+                          {tx.email}
+                        </div>
+                      </div>
                     </div>
                   </td>
-                  <td className="py-3 text-gray-500 dark:text-gray-400">
+
+                  <td className="py-4 text-gray-500 dark:text-gray-400 font-mono text-xs">
                     {tx.date}
                   </td>
-                  <td className="py-3 font-medium text-gray-900 dark:text-gray-100">
+
+                  <td className="py-4 font-semibold text-gray-900 dark:text-gray-100 font-mono">
                     {tx.amount}
                   </td>
-                  <td className="py-3">
+
+                  <td className="py-4">
                     <span
-                      className={`px-2 py-0.5 rounded text-xs font-semibold ${
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold tracking-wide border ${
                         tx.status === "Sikeres"
-                          ? "bg-green-50 dark:bg-green-950/30 text-green-600 dark:text-green-400"
+                          ? "bg-emerald-500/10 dark:bg-[#4ADE80]/5 border-emerald-500/20 text-emerald-600 dark:text-[#4ADE80]"
                           : tx.status === "Függőben"
-                            ? "bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400"
-                            : "bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400"
+                            ? "bg-amber-500/10 dark:bg-[#FACC15]/5 border-amber-500/20 text-amber-600 dark:text-[#FACC15]"
+                            : "bg-rose-500/10 dark:bg-[#FF3366]/5 border-rose-500/20 text-rose-500 dark:text-[#FF3366]"
                       }`}
                     >
+                      <span
+                        className={`w-1.5 h-1.5 rounded-full ${
+                          tx.status === "Sikeres"
+                            ? "bg-emerald-500 dark:bg-[#4ADE80]"
+                            : tx.status === "Függőben"
+                              ? "bg-amber-500 dark:bg-[#FACC15]"
+                              : "bg-rose-500 dark:bg-[#FF3366]"
+                        }`}
+                      />
                       {tx.status}
                     </span>
                   </td>
@@ -130,7 +155,7 @@ export default function TransactionTable({
               <tr>
                 <td
                   colSpan={4}
-                  className="py-8 text-center text-gray-400 dark:text-gray-500 italic"
+                  className="py-12 text-center text-gray-400 dark:text-gray-500 italic text-sm"
                 >
                   Nincs a keresésnek megfelelő tranzakció.
                 </td>

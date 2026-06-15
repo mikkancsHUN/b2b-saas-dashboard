@@ -4,6 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getSupabaseClient } from "@/lib/supabaseClient";
+// 1. Importáljuk az új gomb komponenst (írd át az elérési utat oda, ahová mentetted!)
+import { Button } from "@/components/ui/Button";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -18,7 +20,6 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
 
-    // Inicializáljuk az új SSR-alapú klienst, ami sütit ír a böngészőbe
     const supabase = getSupabaseClient();
 
     const { error: authError } = await supabase.auth.signInWithPassword({
@@ -38,23 +39,24 @@ export default function LoginPage() {
   return (
     <>
       <div className="mb-6">
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+        <h2 className="text-2xl font-bold tracking-tight text-white">
           Üdvözlünk újra!
         </h2>
-        <p className="text-xs text-gray-400 mt-1">
+        <p className="text-xs text-gray-400 mt-1.5">
           Lépj be a fiókodba a folytatáshoz.
         </p>
       </div>
 
       {error && (
-        <div className="mb-4 p-3 bg-red-50 dark:bg-red-955/30 text-red-600 dark:text-red-400 text-xs font-semibold rounded-lg border border-red-100 dark:border-red-900/50">
-          ⚠️ {error}
+        <div className="mb-5 p-3.5 bg-red-900/20 text-red-400 text-xs font-medium rounded-xl border border-red-900/40 backdrop-blur-sm flex items-center gap-2">
+          <span>⚠️</span>
+          <span>{error}</span>
         </div>
       )}
 
       <form onSubmit={handleLogin} className="space-y-4">
         <div>
-          <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">
+          <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">
             Email cím
           </label>
           <input
@@ -62,32 +64,39 @@ export default function LoginPage() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-lg text-sm focus:outline-none focus:border-indigo-500 text-gray-900 dark:text-white transition-colors"
-            placeholder="name@company.com"
+            className="w-full px-3.5 py-2.5 bg-gray-950/60 border border-gray-800 rounded-xl text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 text-white placeholder-gray-600 transition-all duration-200"
+            placeholder="nev@ceg.com"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">
-            Jelszó
-          </label>
+          <div className="flex justify-between items-center mb-1.5">
+            <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+              Jelszó
+            </label>
+            <Link
+              href="/forgot-password"
+              className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
+            >
+              Elfelejtetted?
+            </Link>
+          </div>
+
           <div className="relative">
             <input
-              type={showPassword ? "text" : "password"} // <-- Dinamikus típus váltás!
+              type={showPassword ? "text" : "password"}
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 pr-10 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-lg text-sm focus:outline-none focus:border-indigo-500 text-gray-900 dark:text-white transition-colors"
+              className="w-full px-3.5 py-2.5 pr-11 bg-gray-950/60 border border-gray-800 rounded-xl text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 text-white placeholder-gray-600 transition-all duration-200"
               placeholder="••••••••"
             />
-            {/* A kis interaktív szem gomb az input jobb szélén */}
             <button
-              type="button" // <-- KRITIKUS: button típusú legyen, különben a formot akarná beküldeni!
+              type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+              className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-500 hover:text-gray-300 transition-colors"
             >
               {showPassword ? (
-                // 👁️ Áthúzott szem ikon (ha látható a jelszó)
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
@@ -103,7 +112,6 @@ export default function LoginPage() {
                   />
                 </svg>
               ) : (
-                // 👁️ Nyitott szem ikon (ha rejtett a jelszó)
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
@@ -126,29 +134,28 @@ export default function LoginPage() {
               )}
             </button>
           </div>
-          <Link
-            href="/forgot-password"
-            className="text-xs text-indigo-500 hover:text-indigo-400 font-medium transition-colors"
-          >
-            Elfelejtette a jelszavát?
-          </Link>
         </div>
 
-        <button
+        {/* 🔥 AZ ÚJ INTELIGENS GOMB BEVETÉSEN */}
+        <Button
           type="submit"
-          disabled={loading}
-          className="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-600/50 text-white font-semibold text-sm rounded-lg shadow-sm transition-all duration-200"
+          isLoading={loading}
+          className="group relative w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl shadow-[0_0_20px_rgba(37,99,235,0.3)] hover:shadow-[0_0_25px_rgba(37,99,235,0.5)] transition-all duration-300 overflow-hidden transform hover:-translate-y-0.5 active:translate-y-0"
         >
-          {loading ? "Bejelentkezés..." : "Bejelentkezés 🚀"}
-        </button>
+          {/* A menő csillogó csík megmarad a háttérben */}
+          <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/15 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out pointer-events-none" />
+
+          {/* Nem kell külön ternary operator a szövegnek, a gomb intézi az ikont mellé! */}
+          <span>Bejelentkezés</span>
+        </Button>
       </form>
 
-      <div className="mt-6 text-center border-t border-gray-100 dark:border-gray-800 pt-4">
+      <div className="mt-6 text-center border-t border-gray-900 pt-5">
         <p className="text-xs text-gray-400">
           Még nincs fiókod?{" "}
           <Link
             href="/register"
-            className="text-indigo-500 hover:text-indigo-400 font-bold"
+            className="text-blue-400 hover:text-blue-300 font-bold transition-colors"
           >
             Regisztrálj most
           </Link>
