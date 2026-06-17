@@ -1,36 +1,53 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🚀 Premium B2B SaaS Analytics Dashboard
 
-## Getting Started
+A high-performance, fully optimized fintech dashboard that displays real-time SaaS metrics (MRR, Churn Rate, and comprehensive transaction statistics). This project focuses heavily on premium UI/UX design, atomic component architecture, and lightning-fast rendering.
 
-First, run the development server:
+## ✨ Key Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **Real-Time SaaS Metrics:** Dynamic calculation of MRR (Monthly Recurring Revenue), Churn Rate, and successful/pending/failed transactions, including percentage-based month-over-month changes.
+- **Evergreen Chart Engine:** A dynamic, rolling 6-month chart window that seamlessly handles year-end transitions and future-dated test data without breaking.
+- **Instant Filtering & Search:** Lightning-fast client and status-based filtering implemented directly within the transaction table interface.
+- **Premium UI/UX:** Tailored Indigo/Blue dark and light modes with lag-free switching, smooth gradient shimmer effects, and high-fidelity loading skeleton screens.
+- **Data Persistence:** Full Supabase integration utilizing Next.js server-side data revalidation (`router.refresh`) for real-time updates.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🛠️ Tech Stack
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Framework:** [Next.js](https://nextjs.org/) (App Router, React Server Components)
+- **Styling:** [Tailwind CSS](https://tailwindcss.com/)
+- **Database / Backend:** [Supabase](https://supabase.com/)
+- **State & UI Components:** Custom atomic components (including a bulletproof `Button` wrapper, optimized modals, and data tables)
+- **Deployment:** [Vercel](https://vercel.com/)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🚀 Getting Started & Local Setup
 
-## Learn More
+1. **Clone the repository:**
 
-To learn more about Next.js, take a look at the following resources:
+   ```bash
+   git clone <your-repository-link>
+   cd b2b-saas-dashboard
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+2. **Install dependencies:**
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+   ```bash
+   npm install
+   # or
+   yarn install
+   ```
 
-## Deploy on Vercel
+3. **Configure Environment Variables (.env.local):**
+   Create a .env.local file in the root directory and add your Supabase credentials:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url_here
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key_here
+   ```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+4. **Run the development server:**
+   ```bash
+   npm run dev
+   ```
+
+## Code Quality & Refactoring
+
+A core focus of this project was maintaining Clean Code principles. The initial monolithic logic was successfully refactored into isolated, reusable client and server-side components, as well as dedicated helper utilities (app/dashboard/utils.ts). This architectural change reduced the main page's line count by over 90%, vastly improving maintainability, scalability, and overall performance.
