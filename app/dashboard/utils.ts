@@ -1,5 +1,3 @@
-// app/dashboard/utils.ts
-
 export interface ChartDataPoint {
   month: string;
   successful: number;
@@ -30,56 +28,82 @@ interface MonthlyMetrics {
   pendingCount: number;
   failedCount: number;
 }
+
 interface MonthlyDataMap {
   [key: string]: MonthlyMetrics;
 }
 
-// Hónapok szerinti csoportosítás diagramhoz
+// Hónapok szerinti csoportosítás diagramhoz - Dinamikus, gördülő 6 hónapos ablak
 export function generateChartData(transactions: TransactionData[]): ChartDataPoint[] {
-  const monthlyData: MonthlyDataMap = {
-    "01": { month: "Jan", successful: 0, pending: 0, failed: 0, txCount: 0, successCount: 0, pendingCount: 0, failedCount: 0 },
-    "02": { month: "Feb", successful: 0, pending: 0, failed: 0, txCount: 0, successCount: 0, pendingCount: 0, failedCount: 0 },
-    "03": { month: "Már", successful: 0, pending: 0, failed: 0, txCount: 0, successCount: 0, pendingCount: 0, failedCount: 0 },
-    "04": { month: "Ápr", successful: 0, pending: 0, failed: 0, txCount: 0, successCount: 0, pendingCount: 0, failedCount: 0 },
-    "05": { month: "Máj", successful: 0, pending: 0, failed: 0, txCount: 0, successCount: 0, pendingCount: 0, failedCount: 0 },
-    "06": { month: "Jún", successful: 0, pending: 0, failed: 0, txCount: 0, successCount: 0, pendingCount: 0, failedCount: 0 },
-  };
+  const monthlyData: MonthlyDataMap = {};
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  
+  // A mai dátumból indulunk ki
+  const today = new Date();
 
+  // Generálunk egy 6 hónapos ablakot visszafelé a múltba (a legkorábbitól a mostaniig)
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+    const monthIndex = d.getMonth();
+    const year = d.getFullYear();
+    
+    // Kulcs formátuma: "YYYY-MM" (pl. "2026-06"). Így évváltáskor is bombabiztos.
+    const yearMonthKey = `${year}-${String(monthIndex + 1).padStart(2, "0")}`;
+
+    monthlyData[yearMonthKey] = {
+      month: monthNames[monthIndex],
+      successful: 0,
+      pending: 0,
+      failed: 0,
+      txCount: 0,
+      successCount: 0,
+      pendingCount: 0,
+      failedCount: 0,
+    };
+  }
+
+  // Tranzakciók feldolgozása és besorolása a dinamikus hónapokba
   transactions.forEach((tx) => {
     if (!tx.date) return;
-    const monthKey = tx.date.split("-")[1];
+    
+    // Kivágjuk az év és hónap részt: "2026-06-17" -> "2026-06"
+    const txYearMonth = tx.date.substring(0, 7);
 
-    if (monthlyData[monthKey]) {
-      monthlyData[monthKey].txCount += 1;
+    // Csak akkor adjuk hozzá, ha benne van az aktuális 6 hónapos ablakunkban
+    if (monthlyData[txYearMonth]) {
+      monthlyData[txYearMonth].txCount += 1;
       const cleanAmount = parseFloat(tx.amount.replace(/[^0-9.-]+/g, ""));
       const amount = isNaN(cleanAmount) ? 0 : cleanAmount;
 
       if (tx.status === "Sikeres") {
-        monthlyData[monthKey].successful += amount;
-        monthlyData[monthKey].successCount += 1;
+        monthlyData[txYearMonth].successful += amount;
+        monthlyData[txYearMonth].successCount += 1;
       } else if (tx.status === "Függőben") {
-        monthlyData[monthKey].pending += amount;
-        monthlyData[monthKey].pendingCount += 1;
+        monthlyData[txYearMonth].pending += amount;
+        monthlyData[txYearMonth].pendingCount += 1;
       } else if (tx.status === "Meghiúsult") {
-        monthlyData[monthKey].failed += amount;
-        monthlyData[monthKey].failedCount += 1;
+        monthlyData[txYearMonth].failed += amount;
+        monthlyData[txYearMonth].failedCount += 1;
       }
     }
   });
 
-  return Object.keys(monthlyData).sort().map((key) => ({
-    month: monthlyData[key].month,
-    successful: monthlyData[key].successful,
-    pending: monthlyData[key].pending,
-    failed: monthlyData[key].failed,
-    transactions: monthlyData[key].txCount,
-    successfulCount: monthlyData[key].successCount,
-    pendingCount: monthlyData[key].pendingCount,
-    failedCount: monthlyData[key].failedCount,
-  }));
+  // Időrendben növekvő sorrendbe rendezzük a kulcsokat ("2026-01", "2026-02" stb.) és visszaadjuk a tömböt
+  return Object.keys(monthlyData)
+    .sort()
+    .map((key) => ({
+      month: monthlyData[key].month,
+      successful: monthlyData[key].successful,
+      pending: monthlyData[key].pending,
+      failed: monthlyData[key].failed,
+      transactions: monthlyData[key].txCount,
+      successfulCount: monthlyData[key].successCount,
+      pendingCount: monthlyData[key].pendingCount,
+      failedCount: monthlyData[key].failedCount,
+    }));
 }
 
-// MRR és egyéb prémium SaaS metrikák számítása
+// MRR és egyéb prémium SaaS metrikák számítása (Ezen nem változtattunk, tökéletesen működik)
 export function calculateMRRMetrics(transactions: TransactionData[]) {
   const successfulTx = transactions.filter((tx) => tx.status === "Sikeres" && tx.date);
 

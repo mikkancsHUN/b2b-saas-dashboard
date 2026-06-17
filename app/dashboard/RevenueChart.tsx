@@ -160,7 +160,7 @@ export default function RevenueChart({ chartData = [] }: RevenueChartProps) {
               }}
               // 🔥 3. ÁTADJUK A SZIGORÚAN TÍPUSOZOTT FÜGGVÉNYT
               formatter={customFormatter}
-              labelFormatter={(label) => `${label}i statisztika`}
+              labelFormatter={(label) => `${label} statisztika`}
             />
             <Bar
               dataKey={activeStatus}

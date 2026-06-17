@@ -25,17 +25,17 @@ export default function AddTransactionForm() {
 
     setLoading(true);
 
-    const formattedAmount = amount.startsWith("$")
-      ? amount
-      : `$${Number(amount).toLocaleString("en-US")}`;
+    // Tiszta formázás vesszők nélkül, hogy a utils.ts pontosan tudjon vele számolni
+    const numericAmount = amount.replace(/[^0-9.-]+/g, "");
+    const formattedAmount = `$${numericAmount}`;
 
     const { error } = await supabase.from("transactions").insert([
       {
-        client: client,
-        email: email,
+        client: client.trim(),
+        email: email.trim() || null,
         amount: formattedAmount,
         status: status,
-        date: new Date().toISOString().split("T")[0],
+        date: new Date().toISOString().split("T")[0], // Mai nap (YYYY-MM-DD)
       },
     ]);
 
@@ -48,7 +48,7 @@ export default function AddTransactionForm() {
       setClient("");
       setAmount("");
       setEmail("");
-      router.refresh();
+      router.refresh(); // Frissíti a szerveroldali page.tsx-et, így azonnal újraszámol minden kártya és grafikon!
     }
   };
 
@@ -62,7 +62,8 @@ export default function AddTransactionForm() {
           Új tranzakció rögzítése
         </h3>
         <p className="text-xs text-gray-400 dark:text-gray-500">
-          Adj hozzá egy új fizetési tételt a rendszerhez
+          Adj hozzá egy új fizetési tételt a rendszerhez szabadon tesztelhető
+          adatokkal
         </p>
       </div>
 
@@ -148,10 +149,7 @@ export default function AddTransactionForm() {
           isLoading={loading}
           className="group relative w-full md:w-auto px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl shadow-[0_0_20px_rgba(37,99,235,0.3)] hover:shadow-[0_0_25px_rgba(37,99,235,0.5)] transition-all duration-300 overflow-hidden transform hover:-translate-y-0.5 active:translate-y-0"
         >
-          {/* A menő csillogó csík megmarad a háttérben */}
           <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/15 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out pointer-events-none" />
-
-          {/* Nem kell külön ternary operator a szövegnek, a gomb intézi az ikont mellé! */}
           <span>Tranzakció rögzítése</span>
         </Button>
       </div>
