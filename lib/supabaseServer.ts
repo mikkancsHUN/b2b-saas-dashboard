@@ -1,4 +1,3 @@
-// lib/supabaseServer.ts
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
@@ -19,7 +18,8 @@ export async function getSupabaseServer() {
               cookieStore.set(name, value, options)
             );
           } catch {
-            // A Server Component-ekből nem mindig lehet sütit írni, ezt a Middleware fogja lekezelni
+            // Server Components cannot mutate cookies during the render phase.
+            // This fallback is safely handled upstream by the middleware layer.
           }
         },
       },

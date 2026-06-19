@@ -1,16 +1,13 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-// 1. Definiáljuk a tranzakció pontos TypeScript szerkezetét
 interface Transaction {
-  id: string; // vagy number, amilyen az adatbázisodban
+  id: string;
   client: string;
-  amount: number;
+  amount: string | number;
   status: string;
   date: string;
-  // ide jöhet még bármi, ami a Supabase tábládban van, pl. type: string;
 }
 
-// 2. Beillesztjük a Transaction típust az input interface-be
 interface AiAnalysisInput {
   currentMRR: number;
   currentMonthCount: number;
@@ -24,37 +21,41 @@ export async function getAiFinancialAnalysis({
   globalChurnRate,
   safeTransactions
 }: AiAnalysisInput) {
-  let aiAnalysis = "Az AI asszisztens épp elemzi az adatokat";
+  let aiAnalysis = "The AI assistant is evaluating the ledger architecture...";
   let isRateLimited = false;
 
   try {
     const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
     const model = ai.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-    // Most már a VS Code pontosan tudja, hogy a 'tx' rendelkezik client, amount, status és date mezőkkel!
+    // Serialize ledger subset into structural text for context window processing
     const transactionSummary = safeTransactions
       .map((tx) => `- ${tx.client}: ${tx.amount} (${tx.status}, ${tx.date})`)
       .join("\n");
 
     const prompt = `
-      Légy egy profi B2B SaaS pénzügyi tanácsadó. Elemezd a következő élő adatokat:
-      Havi bevétel: $${currentMRR.toLocaleString("en-US")}
-      Aktív felhasználók: ${currentMonthCount}
-      Lemorzsolódás: ${globalChurnRate}%
+      You are a senior B2B SaaS financial analyst and strategist. Provide an executive summary based on the following real-time data:
+      - Current MRR: $${currentMRR.toLocaleString("en-US")}
+      - Active Subscriptions: ${currentMonthCount}
+      - Churn Rate: ${globalChurnRate}%
 
-      Részletes tranzakciók:
+      Recent Transaction Ledger:
       ${transactionSummary}
 
-      Írj egy rövid, maximum 2-3 mondatos, tűpontos és professzionális magyar nyelvű elemzést vagy javaslatot a cég helyzetéről! 
-      Nyers szöveget adj vissza, ne használj semmilyen markdown formázást.
+      Task:
+      Write a highly professional, dense, 2-3 sentence financial assessment or actionable strategic recommendation regarding the company's current performance, runway, or growth vectors.
+      
+      Constraints:
+      - Respond strictly in professional English.
+      - Output plain text only. Do not include any Markdown, bolding, bullet points, or special formatting characters.
     `;
 
     const response = await model.generateContent(prompt);
-    aiAnalysis = response.response.text();
+    aiAnalysis = response.response.text().trim();
   } catch (error) {
-    console.error("Gemini hiba az aiService-ben:", error);
+    console.error("Gemini API infrastructure execution error:", error);
     isRateLimited = true;
-    aiAnalysis = "Az intelligens asszisztens jelenleg pihen (Rate Limit elérve). Frissítsd az oldalt egy kicsit később!";
+    aiAnalysis = "The intelligent assistant is currently rate-limited. Please trigger a refresh sequence shortly.";
   }
 
   return { aiAnalysis, isRateLimited };

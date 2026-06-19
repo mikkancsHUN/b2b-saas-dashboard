@@ -3,23 +3,23 @@ import ThemeToggle from "./ThemeToggle";
 import UserMenu from "./UserMenu";
 
 export default async function Header() {
-  // Lekérjük a bejelentkezett felhasználót közvetlenül a fejlécben
+  // Resolve the authenticated user profile within the server-side runtime context
   const supabaseServer = await getSupabaseServer();
   const {
     data: { user },
   } = await supabaseServer.auth.getUser();
 
   const username =
-    user?.user_metadata?.display_name || user?.email?.split("@")[0] || "Vendég";
+    user?.user_metadata?.display_name || user?.email?.split("@")[0] || "Guest";
 
   return (
     <div className="flex justify-between items-center mb-8 pb-5 border-b border-gray-200/60 dark:border-gray-900/80">
       <div>
         <h1 className="text-2xl font-extrabold tracking-tight text-gray-900 dark:text-white bg-gradient-to-r dark:from-white dark:to-gray-400 dark:bg-clip-text dark:text-transparent">
-          Pénzügyi Irányítópult
+          Financial Dashboard
         </h1>
         <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mt-1">
-          Üdvözlünk újra a rendszerben! Élő piaci szinkronizáció aktív.
+          Welcome back. Live platform synchronization telemetry is active.
         </p>
       </div>
 

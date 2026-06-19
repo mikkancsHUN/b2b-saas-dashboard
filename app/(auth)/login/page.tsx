@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getSupabaseClient } from "@/lib/supabaseClient";
-// 1. Importáljuk az új gomb komponenst (írd át az elérési utat oda, ahová mentetted!)
 import { Button } from "@/components/ui/Button";
 
 export default function LoginPage() {
@@ -40,16 +39,15 @@ export default function LoginPage() {
     <>
       <div className="mb-6">
         <h2 className="text-2xl font-bold tracking-tight text-white">
-          Üdvözlünk újra!
+          Welcome back
         </h2>
         <p className="text-xs text-gray-400 mt-1.5">
-          Lépj be a fiókodba a folytatáshoz.
+          Sign in to your account to continue.
         </p>
       </div>
 
       {error && (
         <div className="mb-5 p-3.5 bg-red-900/20 text-red-400 text-xs font-medium rounded-xl border border-red-900/40 backdrop-blur-sm flex items-center gap-2">
-          <span>⚠️</span>
           <span>{error}</span>
         </div>
       )}
@@ -57,7 +55,7 @@ export default function LoginPage() {
       <form onSubmit={handleLogin} className="space-y-4">
         <div>
           <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">
-            Email cím
+            Email address
           </label>
           <input
             type="email"
@@ -65,20 +63,20 @@ export default function LoginPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="w-full px-3.5 py-2.5 bg-gray-950/60 border border-gray-800 rounded-xl text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 text-white placeholder-gray-600 transition-all duration-200"
-            placeholder="nev@ceg.com"
+            placeholder="name@company.com"
           />
         </div>
 
         <div>
           <div className="flex justify-between items-center mb-1.5">
             <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-              Jelszó
+              Password
             </label>
             <Link
               href="/forgot-password"
               className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
             >
-              Elfelejtetted?
+              Forgot password?
             </Link>
           </div>
 
@@ -136,28 +134,27 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* 🔥 AZ ÚJ INTELIGENS GOMB BEVETÉSEN */}
+        {/* Custom button component optimized for layout-neutral loading injections */}
         <Button
           type="submit"
           isLoading={loading}
           className="group relative w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl shadow-[0_0_20px_rgba(37,99,235,0.3)] hover:shadow-[0_0_25px_rgba(37,99,235,0.5)] transition-all duration-300 overflow-hidden transform hover:-translate-y-0.5 active:translate-y-0"
         >
-          {/* A menő csillogó csík megmarad a háttérben */}
+          {/* Shimmer overlay tracks hover states explicitly */}
           <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/15 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out pointer-events-none" />
 
-          {/* Nem kell külön ternary operator a szövegnek, a gomb intézi az ikont mellé! */}
-          <span>Bejelentkezés</span>
+          <span>Sign In</span>
         </Button>
       </form>
 
       <div className="mt-6 text-center border-t border-gray-900 pt-5">
         <p className="text-xs text-gray-400">
-          Még nincs fiókod?{" "}
+          Don&apos;t have an account?{" "}
           <Link
             href="/register"
             className="text-blue-400 hover:text-blue-300 font-bold transition-colors"
           >
-            Regisztrálj most
+            Sign up now
           </Link>
         </p>
       </div>

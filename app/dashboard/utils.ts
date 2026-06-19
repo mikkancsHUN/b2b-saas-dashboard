@@ -33,21 +33,16 @@ interface MonthlyDataMap {
   [key: string]: MonthlyMetrics;
 }
 
-// Hónapok szerinti csoportosítás diagramhoz - Dinamikus, gördülő 6 hónapos ablak
 export function generateChartData(transactions: TransactionData[]): ChartDataPoint[] {
   const monthlyData: MonthlyDataMap = {};
   const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  
-  // A mai dátumból indulunk ki
   const today = new Date();
 
-  // Generálunk egy 6 hónapos ablakot visszafelé a múltba (a legkorábbitól a mostaniig)
+  // Generate a rolling 6-month chronological viewport anchor
   for (let i = 5; i >= 0; i--) {
     const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
     const monthIndex = d.getMonth();
     const year = d.getFullYear();
-    
-    // Kulcs formátuma: "YYYY-MM" (pl. "2026-06"). Így évváltáskor is bombabiztos.
     const yearMonthKey = `${year}-${String(monthIndex + 1).padStart(2, "0")}`;
 
     monthlyData[yearMonthKey] = {
@@ -62,33 +57,30 @@ export function generateChartData(transactions: TransactionData[]): ChartDataPoi
     };
   }
 
-  // Tranzakciók feldolgozása és besorolása a dinamikus hónapokba
+  // Parse transaction entities and map to respective temporal buckets
   transactions.forEach((tx) => {
     if (!tx.date) return;
-    
-    // Kivágjuk az év és hónap részt: "2026-06-17" -> "2026-06"
     const txYearMonth = tx.date.substring(0, 7);
 
-    // Csak akkor adjuk hozzá, ha benne van az aktuális 6 hónapos ablakunkban
     if (monthlyData[txYearMonth]) {
       monthlyData[txYearMonth].txCount += 1;
       const cleanAmount = parseFloat(tx.amount.replace(/[^0-9.-]+/g, ""));
       const amount = isNaN(cleanAmount) ? 0 : cleanAmount;
 
-      if (tx.status === "Sikeres") {
+      // CRITICAL: Aligned with Stripe-compliant database state row values
+      if (tx.status === "succeeded") {
         monthlyData[txYearMonth].successful += amount;
         monthlyData[txYearMonth].successCount += 1;
-      } else if (tx.status === "Függőben") {
+      } else if (tx.status === "pending") {
         monthlyData[txYearMonth].pending += amount;
         monthlyData[txYearMonth].pendingCount += 1;
-      } else if (tx.status === "Meghiúsult") {
+      } else if (tx.status === "failed") {
         monthlyData[txYearMonth].failed += amount;
         monthlyData[txYearMonth].failedCount += 1;
       }
     }
   });
 
-  // Időrendben növekvő sorrendbe rendezzük a kulcsokat ("2026-01", "2026-02" stb.) és visszaadjuk a tömböt
   return Object.keys(monthlyData)
     .sort()
     .map((key) => ({
@@ -103,9 +95,9 @@ export function generateChartData(transactions: TransactionData[]): ChartDataPoi
     }));
 }
 
-// MRR és egyéb prémium SaaS metrikák számítása (Ezen nem változtattunk, tökéletesen működik)
 export function calculateMRRMetrics(transactions: TransactionData[]) {
-  const successfulTx = transactions.filter((tx) => tx.status === "Sikeres" && tx.date);
+  // CRITICAL: Aligned with Stripe-compliant database state row values
+  const successfulTx = transactions.filter((tx) => tx.status === "succeeded" && tx.date);
 
   const totalRevenue = successfulTx.reduce((sum, tx) => {
     const cleanAmount = parseFloat(tx.amount.replace(/[^0-9.-]+/g, ""));
@@ -113,8 +105,8 @@ export function calculateMRRMetrics(transactions: TransactionData[]) {
   }, 0);
 
   const totalSuccessCount = successfulTx.length;
-  const totalFailedCount = transactions.filter((tx) => tx.status === "Meghiúsult").length;
-  const totalPendingCount = transactions.filter((tx) => tx.status === "Függőben").length;
+  const totalFailedCount = transactions.filter((tx) => tx.status === "failed").length;
+  const totalPendingCount = transactions.filter((tx) => tx.status === "pending").length;
 
   const globalUniqueCustomers = new Set<string>();
   transactions.forEach((tx) => {
@@ -128,7 +120,7 @@ export function calculateMRRMetrics(transactions: TransactionData[]) {
       flowTx: { current: 0, total: 0, change: 0, isPositive: true },
       pending: { current: 0, total: 0, change: 0, isPositive: true },
       failed: { current: 0, total: 0, change: 0, isPositive: true },
-      uniqueCustomers: { currentMonthCount: 0, totalAllTimeCount: 0, changeText: "0% változás", isPositive: true },
+      uniqueCustomers: { currentMonthCount: 0, totalAllTimeCount: 0, changeText: "0% change", isPositive: true },
     };
   }
 
@@ -158,7 +150,8 @@ export function calculateMRRMetrics(transactions: TransactionData[]) {
     if (txYear === currentYear && txMonth === currentMonth) currentMonthFlowCount++;
     else if (txYear === prevYear && txMonth === prevMonth) prevMonthFlowCount++;
 
-    if (tx.status === "Sikeres") {
+    // CRITICAL: Aligned with Stripe-compliant database state row values
+    if (tx.status === "succeeded") {
       const cleanAmount = parseFloat(tx.amount.replace(/[^0-9.-]+/g, ""));
       const amount = isNaN(cleanAmount) ? 0 : cleanAmount;
 
@@ -173,12 +166,12 @@ export function calculateMRRMetrics(transactions: TransactionData[]) {
       }
     }
 
-    if (tx.status === "Függőben") {
+    if (tx.status === "pending") {
       if (txYear === currentYear && txMonth === currentMonth) currentMonthPending++;
       else if (txYear === prevYear && txMonth === prevMonth) prevMonthPending++;
     }
 
-    if (tx.status === "Meghiúsult") {
+    if (tx.status === "failed") {
       if (txYear === currentYear && txMonth === currentMonth) currentMonthFailed++;
       else if (txYear === prevYear && txMonth === prevMonth) prevMonthFailed++;
     }

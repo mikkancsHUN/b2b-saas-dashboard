@@ -7,10 +7,10 @@ export default function DashboardLayout({
 }) {
   return (
     <div className="p-8 bg-gray-50 dark:bg-[#030712] min-h-screen transition-colors duration-200 selection:bg-indigo-500 selection:text-white">
-      {/* 🔥 Az új, tiszta, szerver-oldali Header komponensünk */}
+      {/* Decoupled server-side header layout module */}
       <Header />
 
-      {/* Itt jelennek meg a page.tsx-ek tartalmai */}
+      {/* Primary viewport rendering node for child page contexts */}
       {children}
     </div>
   );

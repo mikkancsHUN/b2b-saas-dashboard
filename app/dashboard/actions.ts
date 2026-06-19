@@ -7,7 +7,7 @@ import { redirect } from 'next/navigation'
 export async function handleSignOut() {
   const cookieStore = await cookies()
 
-  // 1. Inicializáljuk a szerver klienst
+  // 1. Initialize server-side client infrastructure
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL || '',
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
@@ -22,20 +22,20 @@ export async function handleSignOut() {
               cookieStore.set({ name, value, ...options })
             )
           } catch {
-            // A Server Action-ökben a setAll néha hibát dobhat, ha csak törlünk, ez normális
+            // Server Actions may suppress header mutations during sequential eviction states
           }
         },
       },
     }
   )
 
-  // 2. Kiléptetjük a felhasználót a Supabase-ből (ez törli a session-t)
+  // 2. Terminate session mapping within the Supabase authentication provider
   await supabase.auth.signOut()
 
-  // 3. 💥 Manuálisan is megsemmisítjük a Supabase sütiket, hogy a Middleware biztosan lássa
+  // 3. Explicitly evict local state cookies to guarantee immediate middleware synchronization
   cookieStore.delete('sb-access-token')
   cookieStore.delete('sb-refresh-token')
 
-  // 4. Átirányítjuk a login oldalra
+  // 4. Force state transition by redirecting to the authentication gateway
   redirect('/login')
 }

@@ -4,6 +4,8 @@ import { useTheme } from "next-themes";
 import { useSyncExternalStore } from "react";
 
 const emptySubscribe = () => () => {};
+
+// Custom hook leveraging external store synchronization to safeguard against hydration mismatch
 const useIsMounted = () => {
   return useSyncExternalStore(
     emptySubscribe,
@@ -22,9 +24,8 @@ export default function ThemeToggle() {
 
   const isDark = theme === "dark";
 
-  // 🔥 Optimalizált, villámgyors váltás
+  // Injects global transition blocks to prevent visual flashing during layout shift
   const handleThemeChange = () => {
-    // 1. Létrehozunk egy stílus elemet, ami minden létező transition-t kikapcsol a DOM-ban
     const css = document.createElement("style");
     css.type = "text/css";
     css.appendChild(
@@ -38,15 +39,12 @@ export default function ThemeToggle() {
          }`,
       ),
     );
-    // 2. Befecskendezzük a fejlécbe
     document.head.appendChild(css);
 
-    // 3. Végrehajtjuk a tényleges téma váltást
     setTheme(isDark ? "light" : "dark");
 
-    // 4. Egy mikroszkopikus timeout után leszedjük, így a normál hover effektek azonnal működnek tovább
+    // Micro-timeout invocation to decouple style cleanup from layout reflow
     setTimeout(() => {
-      // Azonnali reflow kikényszerítése anélkül, hogy változóba mentenénk (így az ESLint és a TS is boldog)
       if (window.getComputedStyle(css).opacity === "0") return;
 
       document.head.removeChild(css);
@@ -55,9 +53,9 @@ export default function ThemeToggle() {
 
   return (
     <button
-      onClick={handleThemeChange} // 🔥 Az új, golyóálló függvényünk
+      onClick={handleThemeChange}
       className="w-8 h-8 flex items-center justify-center rounded-xl bg-gray-50 hover:bg-indigo-50 text-gray-500 hover:text-indigo-600 dark:bg-gray-900/50 dark:hover:bg-indigo-950/30 dark:text-gray-400 dark:hover:text-indigo-400 border border-gray-100 dark:border-gray-800/60 transition-all duration-200 active:scale-95 cursor-pointer shadow-sm"
-      title={isDark ? "VALTAS_VILAGOS_MODRA" : "VALTAS_SOTET_MODRA"}
+      title={isDark ? "Switch to light mode" : "Switch to dark mode"}
     >
       {isDark ? (
         <svg

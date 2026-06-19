@@ -20,7 +20,7 @@ interface UsageChartProps {
 export default function UsageChart({ chartData = [] }: UsageChartProps) {
   const data = chartData;
 
-  // 🔥 CLEAN CODE SZEKCIÓ: 4 különálló state helyett egyetlen tiszta objektum
+  // Single clean state object for all active filters
   const [activeFilters, setActiveFilters] = useState({
     all: true,
     success: true,
@@ -30,57 +30,57 @@ export default function UsageChart({ chartData = [] }: UsageChartProps) {
 
   const config = {
     all: {
-      label: "Összesen",
+      label: "Total",
       color: "bg-sky-500",
       stroke: "#0EA5E9",
       grad: "colorAll",
       dataKey: "transactions",
-      name: "Összes tranzakció",
+      name: "Total Transactions",
       strokeWidth: 3,
     },
     success: {
-      label: "Sikeres",
-      color: "bg-green-400",
-      stroke: "#4ADE80",
+      label: "Succeeded",
+      color: "bg-emerald-400",
+      stroke: "#34D399",
       grad: "colorSuccess",
       dataKey: "successfulCount",
-      name: "Sikeres",
+      name: "Succeeded",
       strokeWidth: 2.5,
     },
     pending: {
-      label: "Függőben",
-      color: "bg-yellow-400",
-      stroke: "#FACC15",
+      label: "Pending",
+      color: "bg-amber-400",
+      stroke: "#FBBF24",
       grad: "colorPending",
       dataKey: "pendingCount",
-      name: "Függőben",
+      name: "Pending",
       strokeWidth: 2.5,
     },
     failed: {
-      label: "Meghiúsult",
-      color: "bg-red-400",
-      stroke: "#FF3366",
+      label: "Failed",
+      color: "bg-rose-400",
+      stroke: "#F43F5E",
       grad: "colorFailed",
       dataKey: "failedCount",
-      name: "Meghiúsult",
+      name: "Failed",
       strokeWidth: 2.5,
     },
   };
 
   return (
     <div className="group relative bg-gradient-to-br from-white to-gray-50/50 dark:from-gray-950 dark:to-indigo-950/20 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-indigo-950/40 backdrop-blur-md h-full flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-indigo-500/30">
-      {/* FEJLÉC ÉS KAPCSOLÓGOMBOK */}
+      {/* HEADER AND FILTER CONTROLS */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
           <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-            Tranzakciók Mennyisége
+            Transaction Volume
           </h3>
           <p className="text-xs text-gray-400 dark:text-gray-500">
-            Havi bontásban feldolgozott műveletek száma
+            Monthly breakdown of processed operations
           </p>
         </div>
 
-        {/* 🔥 TELJESEN DINAMIKUS, STABIL INTERAKTÍV PULT */}
+        {/* DYNAMIC INTERACTIVE FILTER CONTROL */}
         <div className="flex flex-wrap gap-1 bg-gray-50 dark:bg-gray-950 p-1 rounded-lg border border-gray-100 dark:border-gray-800 self-start sm:self-center">
           {(Object.keys(config) as Array<keyof typeof config>).map((key) => {
             const isActive = activeFilters[key];
@@ -88,11 +88,9 @@ export default function UsageChart({ chartData = [] }: UsageChartProps) {
             return (
               <button
                 key={key}
-                // Az objektum kulcsa alapján egyetlen sorban átbillentjük a megfelelő state-et
                 onClick={() =>
                   setActiveFilters((prev) => ({ ...prev, [key]: !prev[key] }))
                 }
-                // Fix 1px border aktív és inaktív állapotban is -> nincs ugrálás!
                 className={`text-xs font-semibold px-2.5 py-1.5 rounded-md transition-all duration-200 flex items-center gap-1.5 border ${
                   isActive
                     ? "bg-white dark:bg-gray-900/40 text-gray-900 dark:text-white shadow-sm border-gray-200 dark:border-gray-800"
@@ -107,7 +105,7 @@ export default function UsageChart({ chartData = [] }: UsageChartProps) {
         </div>
       </div>
 
-      {/* DIAGRAM SZEKCIÓ */}
+      {/* CHART AREA */}
       <div className="w-full h-[280px] -mx-4 pr-2 pl-0 lg:mx-0 lg:px-0 flex-1 min-h-[14rem]">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
@@ -165,7 +163,7 @@ export default function UsageChart({ chartData = [] }: UsageChartProps) {
               tickLine={false}
               className="fill-gray-400 dark:fill-gray-500"
               domain={[0, "dataMax + 2"]}
-              tickFormatter={(value) => `${value} db`}
+              tickFormatter={(value) => value.toLocaleString()}
               dx={-8}
               style={{
                 fontSize: "11px",
@@ -186,7 +184,7 @@ export default function UsageChart({ chartData = [] }: UsageChartProps) {
               }}
             />
 
-            {/* 🔥 TELJESEN DINAMIKUS GRAFIKON MEGJELENÍTÉS */}
+            {/* DYNAMICALLY RENDERED AREAS BASED ON FILTERS */}
             {(Object.keys(config) as Array<keyof typeof config>).map(
               (key) =>
                 activeFilters[key] && (

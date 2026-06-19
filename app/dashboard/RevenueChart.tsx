@@ -10,7 +10,6 @@ import {
   Tooltip,
   CartesianGrid,
 } from "recharts";
-// 🔥 1. IMPORTÁLJUK A HIVATALOS RECHARTS TÍPUSOKAT
 import {
   NameType,
   ValueType,
@@ -21,40 +20,43 @@ interface RevenueChartProps {
   chartData: ChartDataPoint[];
 }
 
-type RevenueStatus = "successful" | "pending" | "failed";
+// CRITICAL: Aligned with your database standard ("succeeded")
+type RevenueStatus = "succeeded" | "pending" | "failed";
 
 export default function RevenueChart({ chartData = [] }: RevenueChartProps) {
   const data = chartData;
-  const [activeStatus, setActiveStatus] = useState<RevenueStatus>("successful");
+  const [activeStatus, setActiveStatus] = useState<RevenueStatus>("succeeded");
 
   const statusConfig = {
-    successful: {
-      label: "Sikeres",
-      dotColor: "bg-green-400",
-      fill: "#22C55E", // Ultra vibráló zöld
-      hoverFill: "#4ADE80", // Hoverre még világosabb lesz (neon hatás)
-      textClass: "text-green-500 dark:text-green-400",
-      borderColor: "hover:border-green-400/40",
+    succeeded: {
+      label: "Succeeded",
+      dataKey: "successful" as const, // Maps perfectly to ChartDataPoint.successful
+      dotColor: "bg-emerald-400",
+      fill: "#10B981", // Premium Emerald Green
+      hoverFill: "#34D399",
+      textClass: "text-emerald-500 dark:text-emerald-400",
+      borderColor: "hover:border-emerald-400/40",
     },
     pending: {
-      label: "Függőben",
-      dotColor: "bg-yellow-400",
-      fill: "#EAB308", // Elektromos sárga
-      hoverFill: "#FACC15",
-      textClass: "text-yellow-500 dark:text-yellow-400",
-      borderColor: "hover:border-yellow-400/40",
+      label: "Pending",
+      dataKey: "pending" as const, // ChartDataPoint.pending
+      dotColor: "bg-amber-400",
+      fill: "#F59E0B", // Vivid Amber
+      hoverFill: "#FBBF24",
+      textClass: "text-amber-500 dark:text-amber-400",
+      borderColor: "hover:border-amber-400/40",
     },
     failed: {
-      label: "Meghiúsult",
-      dotColor: "bg-red-500",
-      fill: "#FF3366", // Brutál dögös skarlát/neon piros
-      hoverFill: "#FF5E84",
-      textClass: "text-red-500 dark:text-red-400",
-      borderColor: "hover:border-red-500/40",
+      label: "Failed",
+      dataKey: "failed" as const, // ChartDataPoint.failed
+      dotColor: "bg-rose-500",
+      fill: "#F43F5E", // Cyber Rose/Red
+      hoverFill: "#FB7185",
+      textClass: "text-rose-500 dark:text-rose-400",
+      borderColor: "hover:border-rose-500/40",
     },
   };
 
-  // 🔥 2. KIKÖTÖZZÜK A FORMATTER FÜGGVÉNYT EGY HINT-EL ELLÁTOTT, SZIGORÚ TÍPUSÚ FÜGGVÉNYBE
   const customFormatter = (
     value: ValueType | undefined,
   ): [ValueType, NameType] => {
@@ -69,27 +71,26 @@ export default function RevenueChart({ chartData = [] }: RevenueChartProps) {
     <div
       className={`bg-gradient-to-br from-white to-gray-50/50 dark:from-gray-950 dark:to-indigo-950/20 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-indigo-950/40 backdrop-blur-md h-full flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-md ${statusConfig[activeStatus].borderColor}`}
     >
-      {/* FEJLÉC ÉS FILTEREK */}
+      {/* HEADER & FILTERS */}
       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6">
         <div>
           <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-            Bevételi Trendek
+            Revenue Overview
           </h2>
           <p className="text-xs text-gray-400 dark:text-gray-500">
-            Havi bontású pénzügyi statisztika
+            Monthly financial performance analytics
           </p>
         </div>
 
-        {/* PÖCLIKÉS FILTER GOMB */}
-        <div className="flex gap-1 bg-gray-50 dark:bg-gray-950 p-1 rounded-lg border border-gray-100 dark:border-gray-800 self-start sm:set-center">
-          {(["successful", "pending", "failed"] as RevenueStatus[]).map(
+        {/* STATUS FILTER BUTTONS */}
+        <div className="flex gap-1 bg-gray-50 dark:bg-gray-950 p-1 rounded-lg border border-gray-100 dark:border-gray-800 self-start sm:items-center">
+          {(["succeeded", "pending", "failed"] as RevenueStatus[]).map(
             (status) => {
               const isActive = activeStatus === status;
               return (
                 <button
                   key={status}
                   onClick={() => setActiveStatus(status)}
-                  // 🔥 BEKERÜLT A border border-transparent, az aktív ágban pedig csak a színt állítjuk (border-gray-200 dark:border-gray-800)
                   className={`text-xs font-semibold px-3 py-1.5 rounded-md transition-all duration-200 flex items-center gap-1.5 border ${
                     isActive
                       ? "bg-white dark:bg-gray-900/40 text-gray-900 dark:text-white shadow-sm border-gray-200 dark:border-gray-800"
@@ -107,7 +108,7 @@ export default function RevenueChart({ chartData = [] }: RevenueChartProps) {
         </div>
       </div>
 
-      {/* RECHARTS GRAFIKON TERÜLET */}
+      {/* RECHARTS AREA */}
       <div className="w-full h-[280px] -mx-4 pr-2 pl-0 lg:mx-0 lg:px-0 flex-1 min-h-[14rem]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
@@ -125,7 +126,6 @@ export default function RevenueChart({ chartData = [] }: RevenueChartProps) {
               tickLine={false}
               className="fill-gray-400 dark:fill-gray-500"
               dy={10}
-              // 🔥 KÖZVETLEN SVG STÍLUS: Finom, tiszta sans-serif, csupa nagybetű, szellős betűköz
               style={{
                 fontSize: "10px",
                 fontFamily: "ui-sans-serif, system-ui, sans-serif",
@@ -140,7 +140,6 @@ export default function RevenueChart({ chartData = [] }: RevenueChartProps) {
               className="fill-gray-400 dark:fill-gray-500"
               tickFormatter={(value) => `$${value.toLocaleString()}`}
               dx={-8}
-              // 🔥 KÖZVETLEN SVG STÍLUS: Steril, letisztult monospaced számok
               style={{
                 fontSize: "11px",
                 fontFamily:
@@ -158,12 +157,11 @@ export default function RevenueChart({ chartData = [] }: RevenueChartProps) {
                 fontSize: "12px",
                 boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
               }}
-              // 🔥 3. ÁTADJUK A SZIGORÚAN TÍPUSOZOTT FÜGGVÉNYT
               formatter={customFormatter}
-              labelFormatter={(label) => `${label} statisztika`}
+              labelFormatter={(label) => `${label} Performance`}
             />
             <Bar
-              dataKey={activeStatus}
+              dataKey={statusConfig[activeStatus].dataKey} // Safely maps to the correct data key
               fill={statusConfig[activeStatus].fill}
               activeBar={{ fill: statusConfig[activeStatus].hoverFill }}
               radius={[6, 6, 0, 0]}

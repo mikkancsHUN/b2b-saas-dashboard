@@ -9,7 +9,7 @@ export async function middleware(request: NextRequest) {
     },
   });
 
-  // 1. Inicializáljuk a Supabase klienst a Middleware-ben is
+  // 1. Initialize the Supabase server client within the Edge Middleware execution context
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL || '',
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
@@ -19,7 +19,7 @@ export async function middleware(request: NextRequest) {
           return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
-          // 🔥 Itt van az objektum-alapú javítás, amit a legújabb Next.js elvár
+          // Fix: Object-based cookie utility mapping to Next.js requirements
           cookiesToSet.forEach(({ name, value, options }) =>
             request.cookies.set({ name, value, ...options })
           );
@@ -34,20 +34,20 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  // 2. Lekérjük a bejelentkezett felhasználót
+  // 2. Fetch authenticated user data securely from server session
   const { data: { user } } = await supabase.auth.getUser();
 
   const url = request.nextUrl.clone();
 
-  // 3. 🚨 BIZTONSÁGI LOGIKA
+  // 3. ENTERPRISE ROUTE PROTECTION LOGIC
 
-  // Ha a felhasználó a /dashboard-ra akar menni, de NINCS bejelentkezve:
+  // Redirect unauthenticated traffic attempting to access protected layout systems back to authentication
   if (url.pathname.startsWith('/dashboard') && !user) {
     url.pathname = '/login';
     return NextResponse.redirect(url);
   }
 
-  // Ha a felhasználó a /login vagy /register oldalra megy, de MÁR BE VAN jelentkezve:
+  // Prevent authenticated user structures from reaching gateway forms recursively
   if ((url.pathname.startsWith('/login') || url.pathname.startsWith('/register')) && user) {
     url.pathname = '/dashboard';
     return NextResponse.redirect(url);
@@ -56,7 +56,7 @@ export async function middleware(request: NextRequest) {
   return response;
 }
 
-// 4. Megadjuk, hogy mely útvonalakon fusson le a Middleware
+// 4. Define precise route matching definitions to optimize edge runtime executions
 export const config = {
   matcher: ['/dashboard/:path*', '/login', '/register'],
 };

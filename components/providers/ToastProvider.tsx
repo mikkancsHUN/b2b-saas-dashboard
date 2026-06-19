@@ -27,7 +27,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({
 
       setToasts((prev) => [...prev, { id, message, type }]);
 
-      // 4 másodperc (4000ms) után automatikusan eltávolítjuk
+      // Automatically evict toast state data after a 4000ms lifecycle duration
       setTimeout(() => {
         setToasts((prev) => prev.filter((toast) => toast.id !== id));
       }, 4000);
@@ -39,14 +39,13 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({
     <ToastContext.Provider value={{ showToast }}>
       {children}
 
-      {/* TISZTA CSS ANIMÁCIÓK - Így biztosan működik plugin nélkül is! */}
+      {/* Pure CSS keyframe declarations ensuring environment-agnostic animation tracking */}
       <style>{`
         @keyframes toast-progress {
           0% { width: 100%; }
           100% { width: 0%; }
         }
         
-        /* Új, bombabiztos jobbról-balra becsúszás */
         @keyframes toast-slide-in {
           0% {
             transform: translateX(120%);
@@ -62,14 +61,12 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({
           animation: toast-progress 4000ms linear forwards;
         }
 
-        /* Ruganyos, natív hatású animációs osztály */
         .toast-animate-entry {
           animation: toast-slide-in 500ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
         }
       `}</style>
 
-      {/* TOAST-OK VIZUÁLIS MEGJELENÍTÉSE */}
-      {/* Kicsit igazítottunk a konténeren (p-2 és overflow-hidden törölve a széleken), hogy a rugózás ne vágódjon le */}
+      {/* Toast notification rendering node container */}
       <div className="fixed bottom-5 right-5 z-50 flex flex-col gap-3 max-w-sm w-full pointer-events-none p-2">
         {toasts.map((toast) => {
           const textColors = {
@@ -89,19 +86,19 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({
               key={toast.id}
               className="relative bg-gray-950/70 border border-gray-800/80 backdrop-blur-md p-4 rounded-xl shadow-[0_10px_3px_rgba(0,0,0,0.04),0_20px_25px_-5px_rgba(0,0,0,0.3)] flex items-center gap-3 pointer-events-auto overflow-hidden transform hover:scale-[1.01] transition-all toast-animate-entry"
             >
-              {/* Prémium minimalista ikon karika */}
+              {/* Minimalist status icon indicator wrapper */}
               <div
                 className={`w-5 h-5 rounded-lg border border-current ${textColors[toast.type]} flex items-center justify-center text-xs font-black shrink-0 bg-gray-900/40`}
               >
                 {icons[toast.type]}
               </div>
 
-              {/* Szöveg részlet */}
+              {/* Message payload element */}
               <div className="flex-1 text-xs font-semibold text-gray-200 tracking-tight leading-relaxed">
                 {toast.message}
               </div>
 
-              {/* Bezáró gomb */}
+              {/* User eviction trigger control */}
               <button
                 onClick={() =>
                   setToasts((prev) => prev.filter((t) => t.id !== toast.id))
@@ -111,7 +108,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({
                 ✕
               </button>
 
-              {/* AZ INDIGO SÁV AMI VÉGIGFUT AZ ALJÁN */}
+              {/* Linear timeline indicator synchronization bar */}
               <div className="absolute bottom-0 left-0 h-[3px] bg-gradient-to-r from-indigo-500 to-purple-500 toast-progress-bar" />
             </div>
           );

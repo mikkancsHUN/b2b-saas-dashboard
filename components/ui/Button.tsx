@@ -1,10 +1,9 @@
 import React from "react";
 
-// Megadjuk a TypeScriptnek, hogy a gombunk mindent tudjon, amit egy sima HTML gomb (pl. type="submit", onClick),
-// plusz kapjon két extra funkciót (isLoading és variant)
+// Extend native button attributes to inherit standard HTML behaviors (e.g., type, onClick)
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  isLoading?: boolean; // Ha true, pörög a spinner és letilt a gomb
-  variant?: "primary" | "secondary" | "danger"; // A 3 fő dizájn variáns
+  isLoading?: boolean; // Toggles loading state spinner and disables user interaction
+  variant?: "primary" | "secondary" | "danger"; // Style variants mapping to product design requirements
 }
 
 export const Button: React.FC<ButtonProps> = ({
@@ -15,11 +14,11 @@ export const Button: React.FC<ButtonProps> = ({
   disabled,
   ...props
 }) => {
-  // 🎨 Alapstílusok: kerekítés, betűméret, finom animációk az egérmutatónak, és a letiltott (disabled) állapot halványítása
+  // Base utility configurations for structural normalization and transition lifecycles
   const baseStyles =
     "w-full py-2.5 px-4 rounded-xl font-medium text-sm transition-all duration-200 flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm";
 
-  // 🎭 A három különböző színvilág (SaaS Indigo, Letisztult Fehér/Szürke, és a Figyelmeztető Piros)
+  // Variant mappings aligning with application branding definitions
   const variants = {
     primary:
       "bg-indigo-600 hover:bg-indigo-700 text-white focus:ring-indigo-500 dark:bg-indigo-500 dark:hover:bg-indigo-600",
@@ -35,7 +34,7 @@ export const Button: React.FC<ButtonProps> = ({
       className={`${baseStyles} ${variants[variant]} ${className}`}
       {...props}
     >
-      {/* 🔥 SAJÁT BEÉPÍTETT PÖRGŐ MOTOR (GOLYÓÁLLÓ VERZIÓ) */}
+      {/* Inline style injection providing predictable keyframe tracking across rendering environments */}
       {isLoading && (
         <>
           <style>{`
@@ -53,7 +52,7 @@ export const Button: React.FC<ButtonProps> = ({
             fill="none"
             viewBox="0 0 24 24"
           >
-            {/* Halvány háttér ív */}
+            {/* Background tracking arc */}
             <circle
               className="opacity-25"
               cx="12"
@@ -62,7 +61,7 @@ export const Button: React.FC<ButtonProps> = ({
               stroke="currentColor"
               strokeWidth="3"
             ></circle>
-            {/* Erősebb, fényesebb pörgő rész */}
+            {/* Foreground high-contrast indicator arc */}
             <path
               className="opacity-75"
               fill="currentColor"
