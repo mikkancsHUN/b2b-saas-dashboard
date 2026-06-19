@@ -4,6 +4,7 @@ A high-performance, fully optimized fintech dashboard that displays real-time Sa
 
 ## ✨ Key Features
 
+- **Secure Authentication:** Robust user signup, login, and session management powered by Supabase Auth, ensuring dashboard data is securely protected.
 - **Real-Time SaaS Metrics:** Dynamic calculation of MRR (Monthly Recurring Revenue), Churn Rate, and successful/pending/failed transactions, including percentage-based month-over-month changes.
 - **Evergreen Chart Engine:** A dynamic, rolling 6-month chart window that seamlessly handles year-end transitions and future-dated test data without breaking.
 - **Instant Filtering & Search:** Lightning-fast client and status-based filtering implemented directly within the transaction table interface.
@@ -14,7 +15,7 @@ A high-performance, fully optimized fintech dashboard that displays real-time Sa
 
 - **Framework:** [Next.js](https://nextjs.org/) (App Router, React Server Components)
 - **Styling:** [Tailwind CSS](https://tailwindcss.com/)
-- **Database / Backend:** [Supabase](https://supabase.com/)
+- **Database, Auth & Backend:** [Supabase](https://supabase.com/) (PostgreSQL & Supabase Auth)
 - **State & UI Components:** Custom atomic components (including a bulletproof `Button` wrapper, optimized modals, and data tables)
 - **Deployment:** [Vercel](https://vercel.com/)
 
