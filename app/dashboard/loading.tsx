@@ -36,23 +36,7 @@ export default function DashboardLoading() {
         }
       `}</style>
 
-      {/* SECTION 1: HEADER & VIEWPORT CONTROLS */}
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          {/* Primary Viewport Title */}
-          <div className="h-8 w-56 bg-gray-200 dark:bg-gray-800/80 rounded-lg mb-2 shimmer-box"></div>
-          {/* Contextual Subtitle Subline */}
-          <div className="h-4 w-40 bg-gray-200/60 dark:bg-gray-800/50 rounded-md shimmer-box"></div>
-        </div>
-
-        {/* Control Action Peripherals */}
-        <div className="flex items-center gap-2">
-          <div className="w-9 h-9 bg-gray-200 dark:bg-gray-800/80 rounded-lg shimmer-box"></div>
-          <div className="w-24 h-9 bg-gray-200 dark:bg-gray-800/80 rounded-lg shimmer-box"></div>
-        </div>
-      </div>
-
-      {/* SECTION 2: HIGH-LEVEL OPERATIONAL METRICS AGGREGATE */}
+      {/* SECTION 1: HIGH-LEVEL OPERATIONAL METRICS AGGREGATE */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {[1, 2, 3, 4].map((i) => (
           <div
@@ -82,7 +66,7 @@ export default function DashboardLoading() {
         ))}
       </div>
 
-      {/* SECTION 3: SUBSIDIARY SEGMENT PANELS */}
+      {/* SECTION 2: SUBSIDIARY SEGMENT PANELS */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {[5, 6, 7, 8].map((i) => (
           <div
@@ -101,7 +85,7 @@ export default function DashboardLoading() {
         ))}
       </div>
 
-      {/* SECTION 4: ANALYTICAL CHARTING SKELETON GRID */}
+      {/* SECTION 3: ANALYTICAL CHARTING SKELETON GRID */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
         {/* Left Column Data Representation Container (Revenue Framework) */}
         <div className="bg-gradient-to-br from-white to-gray-50/50 dark:from-gray-950 dark:to-indigo-950/20 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-indigo-950/40 h-[380px] flex flex-col justify-between">
@@ -142,7 +126,7 @@ export default function DashboardLoading() {
         </div>
       </div>
 
-      {/* SECTION 5: LLM FINANCIAL INSIGHTS INTELLIGENCE ROW */}
+      {/* SECTION 4: LLM FINANCIAL INSIGHTS INTELLIGENCE ROW */}
       <div className="mt-8 mb-4 bg-gradient-to-r from-blue-50/50 to-indigo-50/50 dark:from-slate-950 dark:to-indigo-950/20 border border-blue-100 dark:border-indigo-950 p-6 rounded-2xl shadow-sm relative overflow-hidden">
         <div className="flex items-start space-x-3">
           {/* Intelligence Interface Node Anchor */}
@@ -156,7 +140,7 @@ export default function DashboardLoading() {
         </div>
       </div>
 
-      {/* SECTION 6: HISTORICAL LEDGER TRANSACTION TABLE */}
+      {/* SECTION 5: HISTORICAL LEDGER TRANSACTION TABLE */}
       <div className="mt-8 bg-white dark:bg-gray-900/40 p-6 rounded-2xl border border-gray-100 dark:border-gray-800/60 shadow-sm">
         {/* Ledger Viewport Header Title */}
         <div className="h-5 w-44 bg-gray-200 dark:bg-gray-800 rounded mb-6 shimmer-box"></div>
