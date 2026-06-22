@@ -24,7 +24,7 @@ A high-performance, fully optimized fintech dashboard that displays real-time Sa
 1. **Clone the repository:**
 
    ```bash
-   git clone <your-repository-link>
+   git clone https://github.com/mikkancsHUN/b2b-saas-dashboard.git
    cd b2b-saas-dashboard
    ```
 
