@@ -21,7 +21,7 @@ export default function Home() {
               <span className="text-[10px] font-black text-white">F</span>
             </div>
             <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent group-hover:from-white group-hover:to-white transition-all">
-              Finánc<span className="text-blue-500 font-extrabold">SaaS</span>
+              Finánc<span className="text-indigo-500 font-bold">SaaS</span>
             </span>
           </div>
           <div>
